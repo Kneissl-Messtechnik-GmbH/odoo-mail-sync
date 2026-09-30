@@ -15,8 +15,11 @@ nur; es schreibt nie in das Postfach zurück.
 ### 1.1 Ablauf
 
 1. **Ordner-Discovery** (`job_discover_folders`): `mailFolders` rekursiv einlesen, je Ordner
-   eine Zeile `mail.sync.folder` mit `include`-Vorbelegung (siehe 2.3). In Outlook gelöschte
-   Ordner werden nicht entfernt, sondern auf `include = False` gesetzt.
+   eine Zeile `mail.sync.folder` mit `include`-Vorbelegung (siehe 2.3). Da Graph v1.0 kein
+   `wellKnownName` liefert, werden die Well-known-Ordner (inbox, sentitems, drafts,
+   deleteditems, junkemail, archive, outbox, …) vorab über ihre Alias-URLs aufgelöst und den
+   IDs zugeordnet. In Outlook gelöschte Ordner werden nicht entfernt, sondern auf
+   `include = False` gesetzt.
 2. **Backfill** (`job_backfill`, je eingeschlossenem Ordner): erste Delta-Abfrage
    `messages/delta` mit `$filter=receivedDateTime ge <start_date>`; alle Seiten werden
    verarbeitet, der zurückgegebene `deltaLink` wird am Ordner gespeichert.
@@ -137,6 +140,7 @@ Menü: **Einstellungen → E-Mail-Sync** (Gruppe „Mail Sync: Verwalter“).
 | `secret_configured` | Anzeige, ob ein Secret gefunden wird |
 | `internal_domains` | Eigene Domains, eine je Zeile; beim Verbindungstest aus `organization.verifiedDomains` vorbelegt, wenn leer |
 | `freemail_domains` | Domains, die nie als Firmendomain gelten (Vorbelegung gmail, outlook, web.de, gmx, t-online, …) |
+| `excluded_folder_patterns` | Ein Muster je Zeile, Teilzeichenkette ohne Groß-/Kleinschreibung gegen den Ordnerpfad; Vorbelegung `privat`, `private`, `persönlich`, `bewerbung`, `personal`, `zeiterfassung`. Wirkt nur auf die Vorbelegung neu gefundener Ordner |
 | `retention_days` | Aufbewahrung nicht zugeordneter Zeilen, Standard 30 |
 | `attachment_max_mb` | Anhangsgrenze je Datei, Standard 10 |
 | `state` | `draft` / `connected` / `error`, gesetzt durch „Verbindung testen“ |
@@ -171,8 +175,13 @@ Identitätsschlüssel).
   `recoverableitemsdeletions`, `syncissues`, `conflicts`, `localfailures`, `serverfailures`,
   `scheduled`, `searchfolders`.
 * `sentitems` nur bei `sync_sent`.
-* Ordner mit Namen „Privat“, „Private“, „Persönlich“ nicht.
+* Unterordner eines ausgeschlossenen Ordners nicht (Vererbung bei der Discovery).
+* Ordner, deren Pfad eines der `excluded_folder_patterns` des Kontos enthält, nicht
+  (Vorbelegung u. a. `privat`, `bewerbung`, `zeiterfassung`).
 * Alle anderen (Posteingang, Archiv, Benutzerordner) ja.
+
+Ein manuell eingeschlossener Ordner mit dem Namen „Privat“, „Private“ oder „Persönlich“
+wird synchronisiert, seine Nachrichten gelten aber als privat (siehe 1.3, Schritt 3).
 
 Weitere Felder: `delta_link`, `backfill_done`, `needs_full_resync`, `last_sync`.
 
@@ -263,13 +272,13 @@ Chatter-Einträge unterliegen den Rechten des Datensatzes, an dem sie hängen (K
 
 | Symptom | Ursache / Maßnahme |
 |---|---|
-| Verbindung `error` | „Verbindung testen“ zeigt die Graph-Fehlermeldung; `last_error` am Konto. Meist Secret, Tenant/Client-ID oder fehlende Berechtigung. |
+| Verbindung `error` | „Verbindung testen“ zeigt die Graph-Fehlermeldung; `last_error` am Konto. Meist Secret, Tenant/Client-ID oder fehlende Berechtigung. Darf die App das Verzeichnis nicht lesen (`/organization` liefert 401/403, typisch bei reiner Exchange-RBAC-Freigabe), prüft der Test stattdessen den Ordnerzugriff auf das erste angelegte Postfach; ohne Postfach bricht er mit einem Hinweis ab. Die eigenen Domains sind dann manuell einzutragen. |
 | Postfach `auth_error` | 401/403 von Graph nach einmaligem Token-Neuversuch. App-Modus: Postfach nicht in der Exchange-Freigabegruppe oder RBAC noch nicht propagiert. Delegiert: Refresh-Token abgelaufen oder widerrufen → „Postfach verbinden“. Der Eigentümer (sonst `admin`) bekommt eine Aktivität. Der Cron überspringt Postfächer in `auth_error`; nach dem Beheben „Jetzt abgleichen“ oder Zustand zurücksetzen. |
 | Postfach `error` | Sonstiger Graph-Fehler; Job wird nach 600 s wiederholt, `last_error` am Postfach. |
 | Lauf mit „Throttled“ | 429/503/504 oder Netzfehler; Wiederholung nach `Retry-After` (min. 5 s). |
 | Lauf mit „Delta-Status ungültig“ | 410 bzw. `syncStateNotFound`; Ordner bekommt `needs_full_resync`, der nächste Job macht einen Backfill. Duplikate fängt die Eindeutigkeit über `graph_id` ab. |
 | Zeile `error` | Fehler bei genau dieser Nachricht, Text im Feld `error`; der Job läuft weiter. |
-| Zeile `unmatched` | Kein Kontakt zu den externen Adressen; Kontakt anlegen und manuell zuordnen oder auf den nächsten Sync warten (bereits registrierte Zeilen werden beim Delta nur neu geroutet, wenn sie noch nicht `linked` sind). |
+| Zeile `unmatched` | Kein Kontakt zu den externen Adressen; Kontakt anlegen und manuell zuordnen oder manuell zuordnen; eine bereits registrierte Zeile wird nur dann neu geroutet, wenn Graph sie im Delta erneut liefert (Änderung in Microsoft 365) und sie noch nicht `linked` ist. |
 | Zeile `matched` | Ziel fehlt (z. B. nach „Zuordnung lösen“); über die Register-Aktionen neu zuordnen. |
 | Nichts passiert | Jobrunner prüfen (Einstellungen → Technisch → Warteschlange), Kanal `root.mail_sync`, Cron aktiv, Postfach aktiv und in `connected`/`draft`, Ordner `include`. |
 
