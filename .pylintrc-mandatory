@@ -1,0 +1,32 @@
+# Pylint MANDATORY configuration for Odoo Mail Sync for Microsoft 365 (Odoo 18)
+# These checks MUST pass - CI blocks on failure
+
+[MASTER]
+load-plugins = pylint_odoo
+score = no
+
+[ODOOLINT]
+valid_odoo_versions = 18.0
+
+[MESSAGES CONTROL]
+# Only enable security-critical and mandatory checks
+disable = all
+enable =
+    sql-injection,
+    eval-used,
+    manifest-required-key,
+    duplicate-xml-record-id,
+    license-allowed,
+    manifest-version-format,
+    manifest-deprecated-key,
+    method-compute,
+    method-inverse,
+    method-search,
+    api-one-deprecated,
+    api-one-multi-together,
+
+[FORMAT]
+max-line-length = 120
+
+[BASIC]
+good-names = _, cr, uid, id, e, f, i, k, v, fp

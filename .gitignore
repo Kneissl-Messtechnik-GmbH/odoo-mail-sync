@@ -9,3 +9,6 @@ __pycache__/
 .DS_Store
 research_notes/
 reports/
+
+# Local OCA checkouts used by `make test`
+.oca/

@@ -1,0 +1,4 @@
+# Development tooling (linting, formatting, hooks)
+ruff>=0.6.0
+pre-commit>=3.0
+pylint-odoo>=9.0

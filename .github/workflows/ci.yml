@@ -1,0 +1,96 @@
+name: CI
+
+on:
+  push:
+    branches: ["18.0", "19.0"]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pre-commit:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pre-commit
+        run: pip install pre-commit
+      - name: Run pre-commit on all files
+        run: pre-commit run --all-files --show-diff-on-failure
+
+  test:
+    name: Odoo 18 tests
+    runs-on: ubuntu-latest
+    # The job runs inside the official Odoo image; steps are executed with the
+    # runner's `tail -f /dev/null` entrypoint, so we call `odoo` directly and
+    # pass the database connection ourselves. The image's default user is
+    # `odoo` (uid 100), which cannot write the mounted workspace or install
+    # packages, hence `--user root`.
+    container:
+      image: odoo:18.0
+      options: --user root
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: odoo
+          POSTGRES_PASSWORD: odoo
+          POSTGRES_DB: odoo
+        options: >-
+          --health-cmd "pg_isready -U odoo"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGHOST: postgres
+      PGUSER: odoo
+      PGPASSWORD: odoo
+      PYTHONDONTWRITEBYTECODE: "1"
+    steps:
+      - name: Install git (not part of the Odoo image)
+        run: |
+          apt-get update -qq
+          apt-get install -y -qq --no-install-recommends git
+      - uses: actions/checkout@v4
+      - name: Clone OCA/queue (queue_job dependency)
+        run: git clone https://github.com/OCA/queue.git -b 18.0 --depth 1 /tmp/oca-queue
+      - name: Install Python dependencies
+        run: pip install --break-system-packages msal
+      - name: Run module tests
+        shell: bash
+        run: |
+          set -o pipefail
+          odoo \
+            --db_host=postgres --db_user=odoo --db_password=odoo \
+            -d test \
+            --addons-path=/usr/lib/python3/dist-packages/odoo/addons,$GITHUB_WORKSPACE,/tmp/oca-queue \
+            -i mail_sync_microsoft,crm_mail_sync \
+            --test-enable --test-tags /mail_sync_microsoft,/crm_mail_sync \
+            --stop-after-init --without-demo=all --no-http --log-level=test \
+            2>&1 | tee odoo-test.log
+      - name: Fail on logged test errors
+        if: always()
+        shell: bash
+        run: |
+          # Odoo exits non-zero on failed tests; this is a second safety net that
+          # also catches modules that were silently skipped or errors outside tests.
+          if grep -E -q "(ERROR|CRITICAL) test |Modules? .* not found|invalid module names|FAIL: |ERROR: " odoo-test.log; then
+            echo "::error::Errors found in Odoo test log"
+            grep -E -n "(ERROR|CRITICAL) test |Modules? .* not found|invalid module names|FAIL: |ERROR: " odoo-test.log | head -50
+            exit 1
+          fi
+          if ! grep -q "odoo.tests" odoo-test.log; then
+            echo "::error::No tests were executed"
+            exit 1
+          fi
+      - name: Upload test log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: odoo-test-log
+          path: odoo-test.log

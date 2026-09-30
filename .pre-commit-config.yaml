@@ -1,0 +1,51 @@
+# Pre-commit configuration for Odoo Mail Sync for Microsoft 365
+# Install: pip install -r requirements-dev.txt && pre-commit install
+# Run:     pre-commit run --all-files   (or: make pre-commit)
+
+repos:
+  # --- General Hooks ---
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+      - id: end-of-file-fixer
+      - id: check-xml
+      - id: check-yaml
+        args: [--allow-multiple-documents]
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # --- Python: Ruff (Linting + Formatting) ---
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.8
+    hooks:
+      - id: ruff
+        args: [--fix, --config, ruff.toml]
+        files: ^(mail_sync_microsoft|crm_mail_sync)/
+      - id: ruff-format
+        args: [--config, ruff.toml]
+        files: ^(mail_sync_microsoft|crm_mail_sync)/
+
+  # --- Python: Pylint-Odoo (Odoo-specific checks) ---
+  - repo: https://github.com/OCA/pylint-odoo
+    rev: v9.1.3
+    hooks:
+      - id: pylint_odoo
+        args:
+          - --rcfile=.pylintrc-mandatory
+        files: ^(mail_sync_microsoft|crm_mail_sync)/
+        types: [python]
+
+  # --- OCA Pre-commit Hooks: PO/POT integrity ---
+  # oca-checks-odoo-module is intentionally not used (upstream bug on valid XML files).
+  - repo: https://github.com/OCA/odoo-pre-commit-hooks
+    rev: v0.2.20
+    hooks:
+      - id: oca-checks-po
+        files: ^(mail_sync_microsoft|crm_mail_sync)/.*\.pot?$
+        types_or: [file]

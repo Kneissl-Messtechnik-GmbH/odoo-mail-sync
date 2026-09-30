@@ -1,0 +1,3 @@
+# Python runtime dependencies of mail_sync_microsoft (Odoo already ships requests).
+msal>=1.28
+requests
