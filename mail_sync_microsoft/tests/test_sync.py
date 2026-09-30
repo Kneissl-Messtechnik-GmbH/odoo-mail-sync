@@ -238,14 +238,23 @@ class TestSync(MailSyncCase):
 
         def locked(query, *args, **kwargs):
             if "FOR UPDATE NOWAIT" in query:
+                try:  # like a real lock failure, this leaves the transaction aborted
+                    real_execute("SELECT 1/0")
+                except psycopg2.Error:
+                    pass
                 raise psycopg2.errors.LockNotAvailable("could not obtain lock on row")
             return real_execute(query, *args, **kwargs)
 
-        with patch.object(
-            type(self.env.cr), "execute", autospec=True, side_effect=lambda cr, q, *a, **k: locked(q, *a, **k)
-        ):
-            with self.assertRaises(RetryableJobError):
+        raised = None
+        try:  # not assertRaises: its savepoint would hide an aborted transaction
+            with patch.object(
+                type(self.env.cr), "execute", autospec=True, side_effect=lambda cr, q, *a, **k: locked(q, *a, **k)
+            ):
                 self.mailbox.job_delta(folders["inbox"].id)
+        except RetryableJobError as exc:
+            raised = exc
+        self.assertIsNotNone(raised)
+        self.env.cr.execute("SELECT 1")  # transaction must still be usable so queue_job can postpone
         self.assertFalse(self.row("m1"))
         self.mailbox.job_delta(folders["inbox"].id)
         self.assertEqual(self.row("m1").state, "linked")

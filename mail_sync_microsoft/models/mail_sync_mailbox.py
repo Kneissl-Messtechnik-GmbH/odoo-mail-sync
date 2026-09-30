@@ -289,12 +289,14 @@ class MailSyncMailbox(models.Model):
         """
         from odoo.addons.queue_job.exception import RetryableJobError  # noqa: PLC0415
 
+        message = f"Ordner {folder.display_name} wird gerade synchronisiert"
         try:
-            self.env.cr.execute("SELECT id FROM mail_sync_folder WHERE id = %s FOR UPDATE NOWAIT", (folder.id,))
+            # savepoint: a failed NOWAIT would otherwise abort the whole job transaction and
+            # queue_job could not even postpone the job; the lock outlives the released savepoint
+            with self.env.cr.savepoint(flush=False):
+                self.env.cr.execute("SELECT id FROM mail_sync_folder WHERE id = %s FOR UPDATE NOWAIT", (folder.id,))
         except psycopg2.errors.LockNotAvailable as exc:
-            raise RetryableJobError(
-                f"Ordner {folder.display_name} wird gerade synchronisiert", seconds=60, ignore_retry=True
-            ) from exc
+            raise RetryableJobError(message, seconds=60, ignore_retry=True) from exc
 
     def _job_page(self, kind, folder):
         """One Graph page per job; re-enqueue itself while the round has more pages."""
