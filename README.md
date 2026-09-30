@@ -15,7 +15,7 @@ plus a few smarter rules.
 
 Design: [docs/superpowers/specs/2026-09-30-mail-sync-design.md](docs/superpowers/specs/2026-09-30-mail-sync-design.md)
 
-Status: design phase – no installable code yet.
+Status: beta – installable on Odoo 18.0, piloted at Kneissl Messtechnik with shared mailboxes. See CHANGELOG.md.
 
 ## Development
 
