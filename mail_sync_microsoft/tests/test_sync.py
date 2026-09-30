@@ -209,3 +209,19 @@ class TestSync(MailSyncCase):
         self.assertFalse((folders["inbox"].delta_link or "").startswith("next|"), "round finished with a deltaLink")
         runs = self.env["mail.sync.run"].search([("folder_id", "=", folders["inbox"].id), ("kind", "=", "delta")])
         self.assertEqual(len(runs), 3, "one run per page")
+
+    def test_forwarded_message_attachment(self):
+        self.graph.add_message(
+            INFO,
+            "inbox",
+            "m1",
+            "WG: Original",
+            "max@musterwerk.de",
+            [INFO],
+            attachments=[{"name": "fwd.eml", "rfc822": True, "subject": "Original"}],
+        )
+        self.discover()
+        self.sync_folder("inbox")
+        row = self.row("m1")
+        self.assertEqual(row.state, "linked")
+        self.assertTrue(row.mail_message_id)

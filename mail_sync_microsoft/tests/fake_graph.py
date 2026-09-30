@@ -98,6 +98,13 @@ class FakeGraph:
             msg[key] = value
         msg.set_content(body)
         for att in attachments or []:
+            if att.get("rfc822"):
+                inner = EmailMessage()
+                inner["Subject"] = att.get("subject", "Weitergeleitet")
+                inner["From"] = "x@example.com"
+                inner.set_content("Original")
+                msg.attach(inner)
+                continue
             msg.add_attachment(
                 att.get("data", b"x"),
                 maintype=att.get("maintype", "application"),

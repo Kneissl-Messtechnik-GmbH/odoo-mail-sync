@@ -66,11 +66,26 @@ def thread_target_from_references(env, parsed):
     return None
 
 
+def _attachment_bytes(content):
+    """Odoo's parser yields bytes, str or (for message/rfc822 parts) an EmailMessage."""
+    if content is None:
+        return None
+    if isinstance(content, bytes):
+        return content
+    if isinstance(content, str):
+        return content.encode()
+    if hasattr(content, "as_bytes"):
+        return content.as_bytes()
+    return None
+
+
 def post(env, target, parsed, max_attachment_bytes, web_link=None):
     """Post the parsed mail as a note-type e-mail on ``target``. Returns the mail.message."""
     attachments, dropped = [], []
     for att in parsed.get("attachments") or []:
-        content = att.content if isinstance(att.content, bytes) else (att.content or "").encode()
+        content = _attachment_bytes(att.content)
+        if content is None:
+            continue
         if len(content) > max_attachment_bytes:
             dropped.append(f"{att.fname} ({len(content) // 1024 // 1024} MB)")
             continue
