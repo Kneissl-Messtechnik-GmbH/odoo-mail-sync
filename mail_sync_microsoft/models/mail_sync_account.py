@@ -129,8 +129,24 @@ class MailSyncAccount(models.Model):
     # ------------------------------------------------------------- actions
     def action_test_connection(self):
         for account in self:
+            domains = []
             try:
                 domains = account._graph().verified_domains()
+            except graph_service.GraphUnauthorized:
+                # App-only access scoped with Exchange RBAC has no directory permission: fall back to a mailbox call.
+                mailbox = account.mailbox_ids[:1]
+                if not mailbox:
+                    raise UserError(
+                        self.env._(
+                            "Die App darf das Verzeichnis nicht lesen. Legen Sie zuerst ein Postfach an und tragen "
+                            "Sie die eigenen Domains manuell ein; der Test prüft dann den Postfachzugriff."
+                        )
+                    ) from None
+                try:
+                    mailbox._graph().list_folders(mailbox.upn)
+                except graph_service.GraphError as exc:
+                    account.write({"state": "error", "last_error": str(exc)})
+                    raise UserError(self.env._("Verbindung fehlgeschlagen: %s", exc)) from exc
             except graph_service.GraphError as exc:
                 account.write({"state": "error", "last_error": str(exc)})
                 raise UserError(self.env._("Verbindung fehlgeschlagen: %s", exc)) from exc
