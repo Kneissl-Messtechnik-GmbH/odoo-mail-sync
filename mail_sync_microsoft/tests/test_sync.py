@@ -9,7 +9,11 @@ class TestSync(MailSyncCase):
     def test_discover_folders_include_rules(self):
         self.graph.add_folder(INFO, f"{INFO}:privat", "Privat")
         self.graph.add_folder(INFO, f"{INFO}:kunden", "Kunden")
+        self.graph.add_folder(INFO, f"{INFO}:bewerb", "Bewerbungen 2026")
+        self.graph.add_folder(INFO, f"{INFO}:junksub", "Alt", parent=f"{INFO}:drafts")
         folders = self.discover()
+        self.assertFalse(folders["Bewerbungen 2026"].include)
+        self.assertFalse(folders["Alt"].include, "child of an excluded folder")
         self.assertTrue(folders["inbox"].include)
         self.assertTrue(folders["sentitems"].include)
         self.assertFalse(folders["drafts"].include)
@@ -17,7 +21,7 @@ class TestSync(MailSyncCase):
         self.assertTrue(folders["Kunden"].include)
         # second discovery is idempotent
         self.mailbox.job_discover_folders()
-        self.assertEqual(len(self.mailbox.folder_ids), 6)
+        self.assertEqual(len(self.mailbox.folder_ids), 8)
 
     def test_pipeline_states_and_chatter(self):
         g = self.graph

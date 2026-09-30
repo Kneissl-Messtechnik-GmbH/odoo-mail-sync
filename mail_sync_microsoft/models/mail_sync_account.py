@@ -56,6 +56,12 @@ class MailSyncAccount(models.Model):
         default="\n".join(DEFAULT_FREEMAIL_DOMAINS),
         help="Domains, die nie als Firmen-Domain gewertet werden.",
     )
+    excluded_folder_patterns = fields.Text(
+        string="Ausgeschlossene Ordner",
+        default="privat\nprivate\npersönlich\nbewerbung\npersonal\nzeiterfassung",
+        help="Ein Muster je Zeile (Teilzeichenkette, Groß-/Kleinschreibung egal). Neu gefundene Ordner, deren Pfad "
+        "eines der Muster enthält, werden nicht synchronisiert. Unterordner ausgeschlossener Ordner ebenfalls nicht.",
+    )
     retention_days = fields.Integer(
         string="Aufbewahrung nicht zugeordneter Mails (Tage)",
         default=30,
@@ -88,6 +94,9 @@ class MailSyncAccount(models.Model):
 
     def _freemail_domain_list(self):
         return _lines(self.freemail_domains) or list(DEFAULT_FREEMAIL_DOMAINS)
+
+    def _excluded_folder_patterns(self):
+        return _lines(self.excluded_folder_patterns)
 
     def _get_secret(self, raise_if_missing=True):
         self.ensure_one()

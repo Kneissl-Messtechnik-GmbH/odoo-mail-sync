@@ -37,6 +37,7 @@
                             <group>
                                 <field name="internal_domains" placeholder="firma.de&#10;firma.com"/>
                                 <field name="freemail_domains"/>
+                                <field name="excluded_folder_patterns"/>
                             </group>
                         </page>
                         <page string="Fehler" name="errors" invisible="not last_error">

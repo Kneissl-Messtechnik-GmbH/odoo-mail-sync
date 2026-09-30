@@ -125,7 +125,8 @@ class FakeGraph:
         folders = []
         for f in self.mailboxes[upn]["folders"].values():
             row = dict(f)
-            row["path"] = f["displayName"]
+            parent = self.mailboxes[upn]["folders"].get(f.get("parentFolderId"))
+            row["path"] = f"{parent['displayName']}/{f['displayName']}" if parent else f["displayName"]
             folders.append(row)
         return folders
 

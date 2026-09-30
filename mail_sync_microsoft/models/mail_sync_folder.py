@@ -32,10 +32,11 @@ class MailSyncFolder(models.Model):
             folder.message_count = counts.get(folder, 0)
 
     @api.model
-    def _default_include(self, well_known_name, display_name, mailbox):
+    def _default_include(self, well_known_name, display_name, mailbox, path=None, parent_included=True):
         well_known = (well_known_name or "").lower()
-        if well_known in EXCLUDED_WELL_KNOWN:
+        if not parent_included or well_known in EXCLUDED_WELL_KNOWN:
             return False
         if well_known == "sentitems" and not mailbox.sync_sent:
             return False
-        return (display_name or "").strip().lower() not in ("privat", "private", "persönlich")
+        haystack = (path or display_name or "").strip().lower()
+        return not any(pattern in haystack for pattern in mailbox.account_id._excluded_folder_patterns())

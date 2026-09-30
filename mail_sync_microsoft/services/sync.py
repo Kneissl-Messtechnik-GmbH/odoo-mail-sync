@@ -68,6 +68,7 @@ def discover_folders(mailbox, run):
     Folder = mailbox.env["mail.sync.folder"]
     existing = {f.graph_id: f for f in mailbox.folder_ids}
     seen = set()
+    included = {}  # graph id -> include flag, for parent inheritance
     for row in graph.list_folders(mailbox.upn):
         seen.add(row["id"])
         vals = {
@@ -78,13 +79,18 @@ def discover_folders(mailbox, run):
         folder = existing.get(row["id"])
         if folder:
             folder.write(vals)
+            included[row["id"]] = folder.include
         else:
+            parent_ok = included.get(row.get("parentFolderId"), True)
             vals.update(
                 mailbox_id=mailbox.id,
                 graph_id=row["id"],
-                include=Folder._default_include(vals["well_known_name"], vals["display_name"], mailbox),
+                include=Folder._default_include(
+                    vals["well_known_name"], vals["display_name"], mailbox, path=vals["path"], parent_included=parent_ok
+                ),
             )
-            Folder.create(vals)
+            folder = Folder.create(vals)
+            included[row["id"]] = folder.include
             run.bump("created")
         run.bump("fetched")
     # folders deleted in Outlook: keep rows but exclude them
