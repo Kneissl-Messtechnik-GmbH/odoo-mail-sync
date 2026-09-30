@@ -5,6 +5,7 @@ from unittest.mock import patch
 import psycopg2.errors
 from odoo.addons.queue_job.exception import RetryableJobError
 from odoo.tests import tagged
+from odoo.tools import mute_logger
 
 from .common import INFO, MailSyncCase
 
@@ -230,6 +231,7 @@ class TestSync(MailSyncCase):
         self.assertEqual(row.state, "linked")
         self.assertTrue(row.mail_message_id)
 
+    @mute_logger("odoo.sql_db")  # the simulated lock failure logs a "bad query" line
     def test_concurrent_job_on_same_folder_retries(self):
         """A second job on a folder whose row is locked must retry instead of colliding."""
         self.graph.add_message(INFO, "inbox", "m1", "Hallo", "max@musterwerk.de", [INFO])
