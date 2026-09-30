@@ -5,6 +5,7 @@ import hashlib
 import logging
 from datetime import timedelta
 
+import psycopg2.errors
 from cryptography.fernet import Fernet, InvalidToken
 from odoo import api, fields, models
 from odoo.exceptions import UserError, ValidationError
@@ -279,8 +280,25 @@ class MailSyncMailbox(models.Model):
         self.ensure_one()
         return self._run_job("discover", None, lambda run: sync_service.discover_folders(self, run))
 
+    def _lock_folder(self, folder):
+        """Serialise backfill/delta jobs per folder (they share ``folder.delta_link`` as progress).
+
+        Two jobs on the same folder would fetch the same Graph page and collide on the
+        registry's unique key. The row lock is held until the job's transaction commits;
+        a concurrent job retries later instead of failing.
+        """
+        from odoo.addons.queue_job.exception import RetryableJobError  # noqa: PLC0415
+
+        try:
+            self.env.cr.execute("SELECT id FROM mail_sync_folder WHERE id = %s FOR UPDATE NOWAIT", (folder.id,))
+        except psycopg2.errors.LockNotAvailable as exc:
+            raise RetryableJobError(
+                f"Ordner {folder.display_name} wird gerade synchronisiert", seconds=60, ignore_retry=True
+            ) from exc
+
     def _job_page(self, kind, folder):
         """One Graph page per job; re-enqueue itself while the round has more pages."""
+        self._lock_folder(folder)
         result = {}
 
         def step(run):

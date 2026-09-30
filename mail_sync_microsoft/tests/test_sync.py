@@ -1,5 +1,8 @@
 # Copyright 2026 Kneissl Messtechnik GmbH
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
+from unittest.mock import patch
+
+import psycopg2.errors
 from odoo.addons.queue_job.exception import RetryableJobError
 
 from .common import INFO, MailSyncCase
@@ -225,3 +228,23 @@ class TestSync(MailSyncCase):
         row = self.row("m1")
         self.assertEqual(row.state, "linked")
         self.assertTrue(row.mail_message_id)
+
+    def test_concurrent_job_on_same_folder_retries(self):
+        """A second job on a folder whose row is locked must retry instead of colliding."""
+        self.graph.add_message(INFO, "inbox", "m1", "Hallo", "max@musterwerk.de", [INFO])
+        folders = self.discover()
+        real_execute = self.env.cr.execute
+
+        def locked(query, *args, **kwargs):
+            if "FOR UPDATE NOWAIT" in query:
+                raise psycopg2.errors.LockNotAvailable("could not obtain lock on row")
+            return real_execute(query, *args, **kwargs)
+
+        with patch.object(
+            type(self.env.cr), "execute", autospec=True, side_effect=lambda cr, q, *a, **k: locked(q, *a, **k)
+        ):
+            with self.assertRaises(RetryableJobError):
+                self.mailbox.job_delta(folders["inbox"].id)
+        self.assertFalse(self.row("m1"))
+        self.mailbox.job_delta(folders["inbox"].id)
+        self.assertEqual(self.row("m1").state, "linked")
