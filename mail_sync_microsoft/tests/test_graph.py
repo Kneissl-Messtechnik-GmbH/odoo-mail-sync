@@ -63,14 +63,18 @@ class TestGraphClient(BaseCase):
         self.assertEqual(session.request.call_count, 2)  # one retry after token invalidation
 
     def test_folders_recursive(self):
+        well_known = [_Response(200, {"id": "in"}), _Response(200, {"id": "sent"})] + [
+            _Response(404, {"error": {"code": "ErrorItemNotFound"}}) for _ in graph.WELL_KNOWN_FOLDERS[2:]
+        ]
         client, _ = self._client(
-            [
+            well_known
+            + [
                 _Response(
                     200,
                     {
                         "value": [
-                            {"id": "in", "displayName": "Inbox", "wellKnownName": "Inbox", "childFolderCount": 1},
-                            {"id": "sent", "displayName": "Sent", "wellKnownName": "sentitems", "childFolderCount": 0},
+                            {"id": "in", "displayName": "Inbox", "childFolderCount": 1},
+                            {"id": "sent", "displayName": "Sent", "childFolderCount": 0},
                         ]
                     },
                 ),
@@ -80,6 +84,7 @@ class TestGraphClient(BaseCase):
         folders = client.list_folders("u@x.de")
         self.assertEqual([f["path"] for f in folders], ["Inbox", "Inbox/Kunden", "Sent"])
         self.assertEqual(folders[0]["wellKnownName"], "inbox")
+        self.assertEqual(folders[2]["wellKnownName"], "sentitems")
 
     def test_mime(self):
         client, _ = self._client([_Response(200, text="From: a@b.c\r\n\r\nhi")])

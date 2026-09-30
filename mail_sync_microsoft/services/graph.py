@@ -39,7 +39,22 @@ MESSAGE_SELECT = ",".join(
         "webLink",
     ]
 )
-FOLDER_SELECT = "id,displayName,wellKnownName,parentFolderId,childFolderCount,totalItemCount"
+FOLDER_SELECT = "id,displayName,parentFolderId,childFolderCount,totalItemCount"
+# v1.0 has no wellKnownName on mailFolder; the well-known folders are resolved by name instead.
+WELL_KNOWN_FOLDERS = (
+    "inbox",
+    "sentitems",
+    "drafts",
+    "deleteditems",
+    "junkemail",
+    "archive",
+    "outbox",
+    "conversationhistory",
+    "clutter",
+    "scheduled",
+    "recoverableitemsdeletions",
+    "syncissues",
+)
 
 # Well-known folders that are never synchronised.
 EXCLUDED_WELL_KNOWN = {
@@ -229,16 +244,31 @@ class GraphClient:
         return [d.get("name", "").lower() for d in org.get("verifiedDomains", []) if d.get("name")]
 
     # --- folders -----------------------------------------------------------
+    def well_known_folder_ids(self, upn):
+        """{folder id: well-known name} resolved through the well-known folder aliases."""
+        mapping = {}
+        for name in WELL_KNOWN_FOLDERS:
+            try:
+                payload = self.get_json(f"users/{upn}/mailFolders/{name}", params={"$select": "id"})
+            except (GraphNotFound, GraphError) as exc:
+                if isinstance(exc, (GraphThrottled, GraphUnauthorized)):
+                    raise
+                continue
+            if payload and payload.get("id"):
+                mapping[payload["id"]] = name
+        return mapping
+
     def list_folders(self, upn):
-        """All mail folders of a mailbox, flattened, with ``parentFolderId`` and ``path``."""
+        """All mail folders of a mailbox, flattened, with ``parentFolderId``, ``path`` and ``wellKnownName``."""
         result = []
+        well_known = self.well_known_folder_ids(upn)
 
         def walk(url, prefix):
             rows = list(self._paged(url, params={"$select": FOLDER_SELECT, "$top": 100}) or [])
             for folder in rows:
                 folder = dict(folder)
                 folder["path"] = f"{prefix}/{folder.get('displayName', '')}".strip("/")
-                folder["wellKnownName"] = (folder.get("wellKnownName") or "").lower()
+                folder["wellKnownName"] = well_known.get(folder["id"], "")
                 result.append(folder)
                 if folder.get("childFolderCount"):
                     walk(f"users/{upn}/mailFolders/{folder['id']}/childFolders", folder["path"])
