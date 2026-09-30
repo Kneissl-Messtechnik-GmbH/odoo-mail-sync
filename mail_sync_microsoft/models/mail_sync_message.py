@@ -85,16 +85,14 @@ class MailSyncMessage(models.Model):
         for message in self:
             if message.visibility == "shared":
                 continue
-            if (
-                message.owner_user_id
-                and message.owner_user_id != self.env.user
-                and not self.env.user.has_group("mail_sync_microsoft.group_mail_sync_manager")
-            ):
+            is_manager = self.env.su or self.env.user.has_group("mail_sync_microsoft.group_mail_sync_manager")
+            if message.owner_user_id and message.owner_user_id != self.env.user and not is_manager:
                 raise UserError(self.env._("Nur der Eigentümer des Postfachs kann diese Mail freigeben."))
             message.write(
                 {"visibility": "shared", "shared_by_id": self.env.user.id, "shared_at": fields.Datetime.now()}
             )
-            message.mailbox_id.with_delay(
+            # sudo: the import job needs the technical models (run log, chatter); it must not run as the sharing user
+            message.mailbox_id.sudo().with_delay(
                 channel="root.mail_sync", description=f"Mail Sync: Freigabe {message.subject or ''}"[:80]
             ).job_ingest_message(message.id)
         return True
@@ -112,7 +110,8 @@ class MailSyncMessage(models.Model):
                 message.mail_message_id.write({"model": record._name, "res_id": record.id})
             message.write(vals)
             if message.visibility == "shared" and not message.mail_message_id:
-                message.mailbox_id.with_delay(channel="root.mail_sync").job_ingest_message(message.id)
+                # sudo: technical import job, see action_share
+                message.mailbox_id.sudo().with_delay(channel="root.mail_sync").job_ingest_message(message.id)
         return True
 
     def action_unlink_target(self):

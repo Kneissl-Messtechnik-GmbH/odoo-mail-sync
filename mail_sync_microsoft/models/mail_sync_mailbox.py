@@ -75,7 +75,7 @@ class MailSyncMailbox(models.Model):
     last_error = fields.Text(readonly=True)
     refresh_token_enc = fields.Char(string="Refresh-Token (verschlüsselt)", groups="base.group_system", copy=False)
     folder_ids = fields.One2many("mail.sync.folder", "mailbox_id", string="Ordner")
-    message_ids = fields.One2many("mail.sync.message", "mailbox_id", string="Nachrichten")
+    sync_message_ids = fields.One2many("mail.sync.message", "mailbox_id", string="Nachrichten")
     message_count = fields.Integer(compute="_compute_counts")
     linked_count = fields.Integer(compute="_compute_counts")
     unmatched_count = fields.Integer(compute="_compute_counts")
@@ -237,6 +237,11 @@ class MailSyncMailbox(models.Model):
             run.finish(error=f"Throttled, retry in {exc.retry_after}s")
             raise RetryableJobError(str(exc), seconds=max(exc.retry_after, 5), ignore_retry=True) from exc
         except graph_service.GraphGone as exc:
+            _logger.info(
+                "Mail Sync: Delta-Status für %s/%s ungültig, Neusynchronisation",
+                self.upn,
+                folder and folder.display_name,
+            )
             if folder:
                 folder.write({"needs_full_resync": True, "delta_link": False})
             run.finish(error=f"Delta-Status ungültig, Ordner wird neu synchronisiert: {exc}")

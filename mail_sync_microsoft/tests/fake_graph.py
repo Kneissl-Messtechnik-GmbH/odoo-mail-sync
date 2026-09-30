@@ -3,6 +3,7 @@
 """In-memory stand-in for GraphClient used by the tests. Same public methods, no network."""
 
 import email.utils
+from datetime import datetime
 from email.message import EmailMessage
 
 from ..services.graph import GraphGone, GraphThrottled
@@ -18,7 +19,7 @@ class FakeGraph:
     def __init__(self, domains=("kneissl-messtechnik.de",)):
         self.domains = list(domains)
         self.mailboxes = {}  # upn -> {"folders": {folder_id: folder}, "messages": {folder_id: [msg]}}
-        self.mime = {}  # message id -> bytes
+        self.mime_store = {}  # message id -> bytes
         self.removed = {}  # folder_id -> [message ids removed in next delta]
         self.calls = []
         self.throttle_once = False
@@ -89,7 +90,7 @@ class FakeGraph:
             msg["Cc"] = ", ".join(cc)
         msg["Subject"] = subject
         msg["Message-ID"] = internet_message_id
-        msg["Date"] = email.utils.format_datetime(email.utils.parsedate_to_datetime(received.replace("Z", "+00:00")))
+        msg["Date"] = email.utils.format_datetime(datetime.fromisoformat(received.replace("Z", "+00:00")))
         if in_reply_to:
             msg["In-Reply-To"] = in_reply_to
             msg["References"] = in_reply_to
@@ -103,7 +104,7 @@ class FakeGraph:
                 subtype=att.get("subtype", "octet-stream"),
                 filename=att["name"],
             )
-        self.mime[message_id] = msg.as_bytes()
+        self.mime_store[message_id] = msg.as_bytes()
         return row
 
     def remove_message(self, upn, folder, message_id):
@@ -171,7 +172,7 @@ class FakeGraph:
 
     def mime(self, upn, message_id, max_bytes=None):
         self.calls.append(("mime", upn, message_id))
-        return self.mime[message_id]
+        return self.mime_store[message_id]
 
     def attachments_meta(self, upn, message_id):
         return []
