@@ -5,6 +5,15 @@ Odoo-Schema `18.0.X.Y.Z`; jedes Modul wird getrennt geführt.
 
 ## mail_sync_microsoft
 
+### 18.0.1.0.1 – 2026-09-30
+
+* Backfill-/Delta-Jobs desselben Ordners werden über eine Zeilensperre serialisiert; ein
+  parallel gestarteter Job wird nach 60 s erneut eingeplant statt am Unique-Key des
+  Registers zu scheitern.
+* Automatisch angelegte Kontakte werden ohne USt-IdNr.-Prüfung erzeugt (die Nummer wird von
+  der Firma übernommen; ungeprüft importierte Nummern blockierten die Zuordnung).
+* `message/rfc822`-Anhänge (weitergeleitete Mails) werden beim Einspielen korrekt serialisiert.
+
 ### 18.0.1.0.0 – 2026-09-30
 
 Erste Version.
@@ -35,6 +44,15 @@ Erste Version.
 * Tests mit `FakeGraph` (Sync, Sichtbarkeit, Prefilter, Graph-Client, OAuth).
 
 ## crm_mail_sync
+
+### 18.0.1.0.1 – 2026-09-30
+
+* Backfill-/Delta-Jobs desselben Ordners werden über eine Zeilensperre serialisiert; ein
+  parallel gestarteter Job wird nach 60 s erneut eingeplant statt am Unique-Key des
+  Registers zu scheitern.
+* Automatisch angelegte Kontakte werden ohne USt-IdNr.-Prüfung erzeugt (die Nummer wird von
+  der Firma übernommen; ungeprüft importierte Nummern blockierten die Zuordnung).
+* `message/rfc822`-Anhänge (weitergeleitete Mails) werden beim Einspielen korrekt serialisiert.
 
 ### 18.0.1.0.0 – 2026-09-30
 

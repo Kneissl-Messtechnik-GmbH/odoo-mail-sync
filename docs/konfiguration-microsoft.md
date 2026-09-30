@@ -127,6 +127,10 @@ sind nur erreichbar, wenn der Benutzer sich mit deren Konto anmelden kann.
   und ein `[queue_job]`-Abschnitt mit `channels = root:4` (oder entsprechend). Der Kanal
   `root.mail_sync` mit Kapazität 4 wird vom Modul angelegt.
 * `web.base.url` zeigt auf die öffentliche HTTPS-Adresse (nur delegierter Modus).
+* Für Benachrichtigungen (z. B. abgelaufene Anmeldung, fehlgeschlagene Jobs) braucht Odoo 18
+  eine Alias-Domain der Firma, deren Standardabsender zum `from_filter` des Ausgangsservers
+  passt. Ohne Alias-Domain sendet Odoo als `odoobot@example.com`, was Exchange Online mit
+  `SendAsDenied` ablehnt. Das Modul selbst versendet keine E-Mails.
 
 ### 4.2 Client-Secret hinterlegen
 

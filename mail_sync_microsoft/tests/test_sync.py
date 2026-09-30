@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import psycopg2.errors
 from odoo.addons.queue_job.exception import RetryableJobError
+from odoo.tests import tagged
 
 from .common import INFO, MailSyncCase
 
@@ -248,6 +249,11 @@ class TestSync(MailSyncCase):
         self.assertFalse(self.row("m1"))
         self.mailbox.job_delta(folders["inbox"].id)
         self.assertEqual(self.row("m1").state, "linked")
+
+
+@tagged("post_install", "-at_install")
+class TestSyncWithFullRegistry(MailSyncCase):
+    """Runs after all modules are loaded, so optional modules such as base_vat take part."""
 
     def test_auto_create_contact_under_company_with_invalid_vat(self):
         """Commercial-field sync copies the company VAT to the new contact; that must not fail."""

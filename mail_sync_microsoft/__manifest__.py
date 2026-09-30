@@ -2,7 +2,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 {
     "name": "Mail Sync for Microsoft 365",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "category": "Discuss",
     "summary": "Mirror Microsoft 365 mailboxes into Odoo and link conversations to contacts (Pipedrive-style)",
     "author": "Kneissl Messtechnik GmbH",
