@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="res_partner_view_form_mail_sync" model="ir.ui.view">
+        <field name="name">res.partner.form.mail.sync</field>
+        <field name="model">res.partner</field>
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="arch" type="xml">
+            <div name="button_box" position="inside">
+                <button name="action_view_mail_sync_messages" type="object" class="oe_stat_button" icon="fa-envelope-o" groups="mail_sync_microsoft.group_mail_sync_user">
+                    <field name="mail_sync_count" widget="statinfo" string="E-Mails"/>
+                </button>
+            </div>
+        </field>
+    </record>
+</odoo>

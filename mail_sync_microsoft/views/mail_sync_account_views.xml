@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_account_view_form" model="ir.ui.view">
+        <field name="name">mail.sync.account.form</field>
+        <field name="model">mail.sync.account</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_test_connection" string="Verbindung testen" type="object" class="btn-primary"/>
+                    <button name="action_store_secret" string="Secret hinterlegen" type="object" invisible="credential_source != 'param'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mailboxes" type="object" class="oe_stat_button" icon="fa-inbox">
+                            <field name="mailbox_count" widget="statinfo" string="Postfächer"/>
+                        </button>
+                    </div>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <group string="Microsoft Entra">
+                            <field name="tenant_id"/>
+                            <field name="client_id"/>
+                            <field name="auth_mode"/>
+                            <field name="credential_source"/>
+                            <field name="secret_configured"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Regeln">
+                            <field name="retention_days"/>
+                            <field name="attachment_max_mb"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Domains" name="domains">
+                            <group>
+                                <field name="internal_domains" placeholder="firma.de&#10;firma.com"/>
+                                <field name="freemail_domains"/>
+                            </group>
+                        </page>
+                        <page string="Fehler" name="errors" invisible="not last_error">
+                            <field name="last_error" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_sync_account_view_list" model="ir.ui.view">
+        <field name="name">mail.sync.account.list</field>
+        <field name="model">mail.sync.account</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="tenant_id"/>
+                <field name="auth_mode"/>
+                <field name="state" widget="badge" decoration-success="state == 'connected'" decoration-danger="state == 'error'"/>
+                <field name="mailbox_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_sync_account_action" model="ir.actions.act_window">
+        <field name="name">Verbindungen</field>
+        <field name="res_model">mail.sync.account</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

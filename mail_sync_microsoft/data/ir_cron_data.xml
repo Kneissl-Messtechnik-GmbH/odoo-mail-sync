@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <record id="cron_mail_sync_delta" model="ir.cron">
+        <field name="name">Mail Sync: Postfächer abgleichen</field>
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_delta()</field>
+        <field name="interval_number">5</field>
+        <field name="interval_type">minutes</field>
+        <field name="active" eval="True"/>
+    </record>
+    <record id="cron_mail_sync_housekeeping" model="ir.cron">
+        <field name="name">Mail Sync: Aufräumen und Ordner prüfen</field>
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_housekeeping()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

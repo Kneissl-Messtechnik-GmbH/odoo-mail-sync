@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_mailbox_view_form" model="ir.ui.view">
+        <field name="name">mail.sync.mailbox.form</field>
+        <field name="model">mail.sync.mailbox</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_connect" string="Postfach verbinden" type="object" class="btn-primary" invisible="auth_mode != 'delegated' or state == 'connected'"/>
+                    <button name="action_discover_folders" string="Ordner einlesen" type="object"/>
+                    <button name="action_backfill" string="Backfill starten" type="object" confirm="Alle eingeschlossenen Ordner ab dem Startdatum einlesen?"/>
+                    <button name="action_sync_now" string="Jetzt abgleichen" type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_messages" type="object" class="oe_stat_button" icon="fa-envelope">
+                            <field name="message_count" widget="statinfo" string="Nachrichten"/>
+                        </button>
+                        <button name="action_view_messages" type="object" class="oe_stat_button" icon="fa-link">
+                            <field name="linked_count" widget="statinfo" string="Zugeordnet"/>
+                        </button>
+                    </div>
+                    <widget name="web_ribbon" title="Archiviert" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title"><h1><field name="upn" placeholder="postfach@firma.de"/></h1></div>
+                    <group>
+                        <group string="Postfach">
+                            <field name="account_id"/>
+                            <field name="auth_mode"/>
+                            <field name="display_name"/>
+                            <field name="kind"/>
+                            <field name="owner_user_id"/>
+                            <field name="active"/>
+                        </group>
+                        <group string="Synchronisation">
+                            <field name="start_date"/>
+                            <field name="sync_sent"/>
+                            <field name="visibility_default"/>
+                            <field name="auto_create_partner"/>
+                            <field name="last_sync"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Ordner" name="folders">
+                            <field name="folder_ids">
+                                <list editable="bottom" create="false">
+                                    <field name="path"/>
+                                    <field name="well_known_name" optional="hide"/>
+                                    <field name="include"/>
+                                    <field name="backfill_done" readonly="1"/>
+                                    <field name="needs_full_resync" readonly="1"/>
+                                    <field name="last_sync" readonly="1"/>
+                                    <field name="message_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ausschlüsse" name="rules">
+                            <group>
+                                <field name="exclude_subject_prefixes"/>
+                                <field name="blocklist_addresses" placeholder="news@beispiel.de"/>
+                                <field name="blocklist_domains" placeholder="newsletter-dienst.de"/>
+                            </group>
+                        </page>
+                        <page string="Fehler" name="errors" invisible="not last_error">
+                            <field name="last_error" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_sync_mailbox_view_list" model="ir.ui.view">
+        <field name="name">mail.sync.mailbox.list</field>
+        <field name="model">mail.sync.mailbox</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="upn"/>
+                <field name="kind"/>
+                <field name="owner_user_id"/>
+                <field name="visibility_default"/>
+                <field name="state" widget="badge" decoration-success="state == 'connected'" decoration-warning="state == 'auth_error'" decoration-danger="state == 'error'"/>
+                <field name="last_sync"/>
+                <field name="message_count"/>
+                <field name="linked_count"/>
+                <field name="unmatched_count"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_sync_mailbox_action" model="ir.actions.act_window">
+        <field name="name">Postfächer</field>
+        <field name="res_model">mail.sync.mailbox</field>
+        <field name="view_mode">list,form</field>
+    </record>
+</odoo>

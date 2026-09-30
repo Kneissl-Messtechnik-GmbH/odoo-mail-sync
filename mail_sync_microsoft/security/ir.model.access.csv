@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mail_sync_account_manager,mail.sync.account.manager,model_mail_sync_account,group_mail_sync_manager,1,1,1,1
+access_mail_sync_account_user,mail.sync.account.user,model_mail_sync_account,group_mail_sync_user,1,0,0,0
+access_mail_sync_mailbox_manager,mail.sync.mailbox.manager,model_mail_sync_mailbox,group_mail_sync_manager,1,1,1,1
+access_mail_sync_mailbox_user,mail.sync.mailbox.user,model_mail_sync_mailbox,group_mail_sync_user,1,1,1,0
+access_mail_sync_folder_manager,mail.sync.folder.manager,model_mail_sync_folder,group_mail_sync_manager,1,1,1,1
+access_mail_sync_folder_user,mail.sync.folder.user,model_mail_sync_folder,group_mail_sync_user,1,1,0,0
+access_mail_sync_message_manager,mail.sync.message.manager,model_mail_sync_message,group_mail_sync_manager,1,1,1,1
+access_mail_sync_message_user,mail.sync.message.user,model_mail_sync_message,group_mail_sync_user,1,1,0,0
+access_mail_sync_run_manager,mail.sync.run.manager,model_mail_sync_run,group_mail_sync_manager,1,1,1,1
+access_mail_sync_run_user,mail.sync.run.user,model_mail_sync_run,group_mail_sync_user,1,0,0,0

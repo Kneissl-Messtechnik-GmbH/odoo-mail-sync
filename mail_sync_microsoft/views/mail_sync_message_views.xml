@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_message_view_list" model="ir.ui.view">
+        <field name="name">mail.sync.message.list</field>
+        <field name="model">mail.sync.message</field>
+        <field name="arch" type="xml">
+            <list create="false" decoration-muted="state in ('skipped_internal','skipped_blocklist','skipped_automatic','removed')" decoration-warning="state == 'matched'" decoration-danger="state == 'error'">
+                <field name="received_at"/>
+                <field name="direction" optional="hide"/>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="to_emails" optional="hide"/>
+                <field name="partner_ids" widget="many2many_tags"/>
+                <field name="record_display"/>
+                <field name="state" widget="badge" decoration-success="state == 'linked'" decoration-info="state == 'matched'"/>
+                <field name="visibility" optional="show"/>
+                <field name="reason" optional="show"/>
+                <field name="mailbox_id" optional="hide"/>
+                <button name="action_share" type="object" string="Freigeben" icon="fa-unlock" invisible="visibility != 'private'"/>
+                <button name="action_open_record" type="object" string="Öffnen" icon="fa-external-link" invisible="not res_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_sync_message_view_form" model="ir.ui.view">
+        <field name="name">mail.sync.message.form</field>
+        <field name="model">mail.sync.message</field>
+        <field name="arch" type="xml">
+            <form create="false">
+                <header>
+                    <button name="action_share" type="object" string="Freigeben" class="btn-primary" invisible="visibility != 'private'"/>
+                    <button name="action_open_record" type="object" string="Datensatz öffnen" invisible="not res_id"/>
+                    <button name="action_unlink_target" type="object" string="Zuordnung lösen" invisible="state != 'linked'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="subject" readonly="1"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="mailbox_id" readonly="1"/>
+                            <field name="folder_id" readonly="1"/>
+                            <field name="direction" readonly="1"/>
+                            <field name="received_at" readonly="1"/>
+                            <field name="email_from" readonly="1"/>
+                            <field name="to_emails" readonly="1"/>
+                            <field name="cc_emails" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="partner_ids" widget="many2many_tags" readonly="1"/>
+                            <field name="commercial_partner_ids" widget="many2many_tags" readonly="1"/>
+                            <field name="record_display"/>
+                            <field name="visibility"/>
+                            <field name="reason" readonly="1"/>
+                            <field name="mail_message_id" readonly="1" groups="base.group_no_one"/>
+                            <field name="web_link" widget="url" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="Vorschau">
+                        <field name="body_preview" nolabel="1" readonly="1"/>
+                    </group>
+                    <group string="Fehler" invisible="not error">
+                        <field name="error" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_sync_message_view_search" model="ir.ui.view">
+        <field name="name">mail.sync.message.search</field>
+        <field name="model">mail.sync.message</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="subject"/>
+                <field name="email_from"/>
+                <field name="partner_ids"/>
+                <field name="mailbox_id"/>
+                <filter name="linked" string="Zugeordnet" domain="[('state', '=', 'linked')]"/>
+                <filter name="matched" string="Zuordnung offen" domain="[('state', '=', 'matched')]"/>
+                <filter name="unmatched" string="Kein Kontakt" domain="[('state', '=', 'unmatched')]"/>
+                <filter name="private" string="Privat" domain="[('visibility', '=', 'private')]"/>
+                <filter name="mine" string="Meine Postfächer" domain="[('owner_user_id', '=', uid)]"/>
+                <group expand="0" string="Gruppieren">
+                    <filter name="group_state" string="Zustand" context="{'group_by': 'state'}"/>
+                    <filter name="group_mailbox" string="Postfach" context="{'group_by': 'mailbox_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="mail_sync_message_action" model="ir.actions.act_window">
+        <field name="name">Register</field>
+        <field name="res_model">mail.sync.message</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{'search_default_group_state': 1}</field>
+    </record>
+
+    <record id="mail_sync_message_action_mine" model="ir.actions.act_window">
+        <field name="name">Meine E-Mails</field>
+        <field name="res_model">mail.sync.message</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">[('owner_user_id', '=', uid)]</field>
+        <field name="context">{'search_default_matched': 1}</field>
+    </record>
+</odoo>

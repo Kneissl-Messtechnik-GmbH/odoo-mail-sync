@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_run_view_list" model="ir.ui.view">
+        <field name="name">mail.sync.run.list</field>
+        <field name="model">mail.sync.run</field>
+        <field name="arch" type="xml">
+            <list create="false">
+                <field name="date_start"/>
+                <field name="mailbox_id"/>
+                <field name="folder_id"/>
+                <field name="kind"/>
+                <field name="state" widget="badge" decoration-success="state == 'done'" decoration-danger="state == 'error'"/>
+                <field name="fetched"/>
+                <field name="created"/>
+                <field name="linked"/>
+                <field name="skipped"/>
+                <field name="errors"/>
+                <field name="error"/>
+            </list>
+        </field>
+    </record>
+    <record id="mail_sync_run_action" model="ir.actions.act_window">
+        <field name="name">Läufe</field>
+        <field name="res_model">mail.sync.run</field>
+        <field name="view_mode">list</field>
+    </record>
+</odoo>

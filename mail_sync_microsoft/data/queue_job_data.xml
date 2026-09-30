@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="channel_mail_sync" model="queue.job.channel">
+        <field name="name">mail_sync</field>
+        <field name="parent_id" ref="queue_job.channel_root"/>
+        <field name="capacity">4</field>
+    </record>
+    <record id="job_function_discover_folders" model="queue.job.function">
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="method">job_discover_folders</field>
+        <field name="channel_id" ref="channel_mail_sync"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300, 6: 1800}"/>
+    </record>
+    <record id="job_function_backfill" model="queue.job.function">
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="method">job_backfill</field>
+        <field name="channel_id" ref="channel_mail_sync"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300, 6: 1800}"/>
+    </record>
+    <record id="job_function_delta" model="queue.job.function">
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="method">job_delta</field>
+        <field name="channel_id" ref="channel_mail_sync"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300, 6: 1800}"/>
+    </record>
+    <record id="job_function_ingest" model="queue.job.function">
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="method">job_ingest_message</field>
+        <field name="channel_id" ref="channel_mail_sync"/>
+        <field name="retry_pattern" eval="{1: 60, 3: 300}"/>
+    </record>
+</odoo>

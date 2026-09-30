@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="menu_mail_sync_root" name="E-Mail-Sync" parent="base.menu_administration" sequence="65" groups="mail_sync_microsoft.group_mail_sync_manager"/>
+    <menuitem id="mail_sync_account_menu" name="Verbindungen" parent="menu_mail_sync_root" action="mail_sync_account_action" sequence="10"/>
+    <menuitem id="mail_sync_mailbox_menu" name="Postfächer" parent="menu_mail_sync_root" action="mail_sync_mailbox_action" sequence="20"/>
+    <menuitem id="mail_sync_message_menu" name="Register" parent="menu_mail_sync_root" action="mail_sync_message_action" sequence="30"/>
+    <menuitem id="mail_sync_run_menu" name="Läufe" parent="menu_mail_sync_root" action="mail_sync_run_action" sequence="40"/>
+    <menuitem id="mail_sync_message_menu_mine" name="Meine E-Mails" parent="mail.menu_root_discuss" action="mail_sync_message_action_mine" sequence="90" groups="mail_sync_microsoft.group_mail_sync_user"/>
+</odoo>

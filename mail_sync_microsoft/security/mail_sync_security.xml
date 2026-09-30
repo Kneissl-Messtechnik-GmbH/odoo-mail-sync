@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="module_category_mail_sync" model="ir.module.category">
+        <field name="name">Mail Sync</field>
+        <field name="sequence">40</field>
+    </record>
+
+    <record id="group_mail_sync_user" model="res.groups">
+        <field name="name">Mail Sync: Benutzer</field>
+        <field name="category_id" ref="module_category_mail_sync"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        <field name="comment">Sieht die synchronisierten E-Mails der eigenen Postfächer und geteilte E-Mails.</field>
+    </record>
+
+    <record id="group_mail_sync_manager" model="res.groups">
+        <field name="name">Mail Sync: Verwalter</field>
+        <field name="category_id" ref="module_category_mail_sync"/>
+        <field name="implied_ids" eval="[(4, ref('group_mail_sync_user'))]"/>
+        <field name="users" eval="[(4, ref('base.user_admin'))]"/>
+        <field name="comment">Richtet Verbindungen und Postfächer ein und sieht alle Registereinträge.</field>
+    </record>
+
+    <record id="rule_mail_sync_message_user" model="ir.rule">
+        <field name="name">Mail Sync: geteilte Mails oder eigene Postfächer</field>
+        <field name="model_id" ref="model_mail_sync_message"/>
+        <field name="groups" eval="[(4, ref('group_mail_sync_user'))]"/>
+        <field name="domain_force">['|', ('visibility', '=', 'shared'), ('owner_user_id', '=', user.id)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+    <record id="rule_mail_sync_message_manager" model="ir.rule">
+        <field name="name">Mail Sync: Verwalter sehen alles</field>
+        <field name="model_id" ref="model_mail_sync_message"/>
+        <field name="groups" eval="[(4, ref('group_mail_sync_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_mail_sync_message_company" model="ir.rule">
+        <field name="name">Mail Sync: Firma</field>
+        <field name="model_id" ref="model_mail_sync_message"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+
+    <record id="rule_mail_sync_mailbox_company" model="ir.rule">
+        <field name="name">Mail Sync: Postfächer je Firma</field>
+        <field name="model_id" ref="model_mail_sync_mailbox"/>
+        <field name="global" eval="True"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+    </record>
+</odoo>
