@@ -103,6 +103,8 @@ class FakeGraph:
                 inner["Subject"] = att.get("subject", "Weitergeleitet")
                 inner["From"] = "x@example.com"
                 inner.set_content("Original")
+                if not msg.is_multipart():
+                    msg.make_mixed()
                 msg.attach(inner)
                 continue
             msg.add_attachment(
