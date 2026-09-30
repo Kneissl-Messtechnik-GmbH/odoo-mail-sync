@@ -298,6 +298,21 @@ class GraphClient:
         except StopIteration as stop:
             return rows, stop.value
 
+    def delta_page(self, upn, folder_id, link=None, since=None):
+        """One page of a delta round. Returns (rows, next_link, delta_link).
+
+        ``link`` may be a ``@odata.nextLink`` (continue the current round) or a ``@odata.deltaLink``
+        (start the next round). Exactly one of ``next_link``/``delta_link`` is set on return.
+        """
+        if link:
+            payload = self.get_json(link)
+        else:
+            params = {"$select": MESSAGE_SELECT}
+            if since:
+                params["$filter"] = f"receivedDateTime ge {since}"
+            payload = self.get_json(f"users/{upn}/mailFolders/{folder_id}/messages/delta", params=params)
+        return payload.get("value", []), payload.get("@odata.nextLink"), payload.get("@odata.deltaLink")
+
     def messages_since(self, upn, folder_id, since, until=None):
         """Backfill listing (no delta) for a time window; yields message dicts."""
         flt = f"receivedDateTime ge {since}"

@@ -101,26 +101,37 @@ def discover_folders(mailbox, run):
     return f"{run.fetched} Ordner"
 
 
-# -------------------------------------------------------------- backfill
-def backfill(mailbox, folder, run):
-    """Initial load from ``start_date`` through a filtered delta, which also yields the delta link."""
+# -------------------------------------------------------------- backfill / delta (page-wise)
+def sync_page(mailbox, folder, run):
+    """Process one Graph page. Returns True when more pages follow (caller re-enqueues).
+
+    ``folder.delta_link`` holds either a nextLink (round in progress) or a deltaLink (round done).
+    """
     graph = mailbox._graph()
-    rows, link = graph.delta(mailbox.upn, folder.graph_id, delta_link=None, since=_since_iso(mailbox))
+    if not folder.delta_link or folder.needs_full_resync:
+        rows, next_link, delta_link = graph.delta_page(mailbox.upn, folder.graph_id, since=_since_iso(mailbox))
+        folder.write({"needs_full_resync": False})
+    else:
+        rows, next_link, delta_link = graph.delta_page(mailbox.upn, folder.graph_id, link=folder.delta_link)
     process_rows(mailbox, folder, rows, run)
+    if next_link:
+        folder.write({"delta_link": next_link, "last_sync": fields.Datetime.now()})
+        return True
     folder.write(
-        {"delta_link": link, "backfill_done": True, "needs_full_resync": False, "last_sync": fields.Datetime.now()}
+        {"delta_link": delta_link or folder.delta_link, "backfill_done": True, "last_sync": fields.Datetime.now()}
     )
+    return False
+
+
+def backfill(mailbox, folder, run):
+    """Compatibility wrapper: run pages until the round is complete (used by tests)."""
+    while sync_page(mailbox, folder, run):
+        pass
     return f"{run.fetched} Nachrichten"
 
 
 def delta(mailbox, folder, run):
-    graph = mailbox._graph()
-    if not folder.delta_link or folder.needs_full_resync:
-        return backfill(mailbox, folder, run)
-    rows, link = graph.delta(mailbox.upn, folder.graph_id, delta_link=folder.delta_link)
-    process_rows(mailbox, folder, rows, run)
-    folder.write({"delta_link": link or folder.delta_link, "last_sync": fields.Datetime.now()})
-    return f"{run.fetched} Änderungen"
+    return backfill(mailbox, folder, run)
 
 
 # -------------------------------------------------------------- pipeline

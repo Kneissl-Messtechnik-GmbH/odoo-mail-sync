@@ -197,3 +197,15 @@ class TestSync(MailSyncCase):
         self.env["mail.sync.message"].invalidate_model()
         self.env["mail.sync.message"]._purge_unmatched()
         self.assertFalse(self.row("m5"))
+
+    def test_paged_rounds_continue_until_done(self):
+        for i in range(5):
+            self.graph.add_message(INFO, "inbox", f"p{i}", f"Seite {i}", "max@musterwerk.de", [INFO])
+        folders = self.discover()
+        self.graph.page_size = 2
+        self.mailbox.job_delta(folders["inbox"].id)  # continuation jobs run inline (queue_job__no_delay)
+        self.assertEqual(self.env["mail.sync.message"].search_count([("mailbox_id", "=", self.mailbox.id)]), 5)
+        self.assertTrue(folders["inbox"].backfill_done)
+        self.assertFalse((folders["inbox"].delta_link or "").startswith("next|"), "round finished with a deltaLink")
+        runs = self.env["mail.sync.run"].search([("folder_id", "=", folders["inbox"].id), ("kind", "=", "delta")])
+        self.assertEqual(len(runs), 3, "one run per page")

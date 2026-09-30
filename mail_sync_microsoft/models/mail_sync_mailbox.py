@@ -279,19 +279,42 @@ class MailSyncMailbox(models.Model):
         self.ensure_one()
         return self._run_job("discover", None, lambda run: sync_service.discover_folders(self, run))
 
+    def _job_page(self, kind, folder):
+        """One Graph page per job; re-enqueue itself while the round has more pages."""
+        result = {}
+
+        def step(run):
+            result["more"] = sync_service.sync_page(self, folder, run)
+            return f"{run.fetched} Nachrichten"
+
+        summary = self._run_job(kind, folder, step)
+        if result.get("more"):
+            self.with_delay(
+                channel=CHANNEL,
+                description=f"Mail Sync: {kind} {self.upn}/{folder.display_name} (Fortsetzung)",
+                identity_key=f"mail_sync_{kind}_{folder.id}",
+                max_retries=50,
+            ).job_backfill(folder.id) if kind == "backfill" else self.with_delay(
+                channel=CHANNEL,
+                description=f"Mail Sync: {kind} {self.upn}/{folder.display_name} (Fortsetzung)",
+                identity_key=f"mail_sync_{kind}_{folder.id}",
+                max_retries=50,
+            ).job_delta(folder.id)
+        return summary
+
     def job_backfill(self, folder_id, page=0):
         self.ensure_one()
         folder = self.env["mail.sync.folder"].browse(folder_id).exists()
         if not folder:
             return "Ordner gelöscht"
-        return self._run_job("backfill", folder, lambda run: sync_service.backfill(self, folder, run))
+        return self._job_page("backfill", folder)
 
     def job_delta(self, folder_id):
         self.ensure_one()
         folder = self.env["mail.sync.folder"].browse(folder_id).exists()
         if not folder or not folder.include:
             return "Ordner ausgeschlossen"
-        return self._run_job("delta", folder, lambda run: sync_service.delta(self, folder, run))
+        return self._job_page("delta", folder)
 
     def job_ingest_message(self, message_id):
         self.ensure_one()

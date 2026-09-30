@@ -158,6 +158,26 @@ class FakeGraph:
         new_link = "|".join(["delta", str(self.delta_counter), *sorted(known)])
         return rows, new_link
 
+    page_size = 2
+
+    def delta_page(self, upn, folder_id, link=None, since=None):
+        """Paged variant of ``delta``: a round is computed once and served in ``page_size`` slices."""
+        cache = self.__dict__.setdefault("_rounds", {})
+        if link and link.startswith("next|"):
+            _, offset, key = link.split("|", 2)
+            offset = int(offset)
+            rows, delta_link = cache[key]
+        else:
+            offset = 0
+            rows, delta_link = self.delta(upn, folder_id, delta_link=link or None, since=since)
+            key = f"{folder_id}:{self.delta_counter}"
+            cache[key] = (rows, delta_link)
+        page = rows[offset : offset + self.page_size]
+        if offset + self.page_size < len(rows):
+            return page, f"next|{offset + self.page_size}|{key}", None
+        cache.pop(key, None)
+        return page, None, delta_link
+
     def messages_since(self, upn, folder_id, since, until=None):
         self.calls.append(("messages_since", upn, folder_id))
         for m in self.mailboxes[upn]["messages"].get(folder_id, []):
