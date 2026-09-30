@@ -69,7 +69,7 @@ jobs:
             --db_host=postgres --db_user=odoo --db_password=odoo \
             -d test \
             --addons-path=/usr/lib/python3/dist-packages/odoo/addons,$GITHUB_WORKSPACE,/tmp/oca-queue \
-            -i mail_sync_microsoft,crm_mail_sync \
+            -i mail_sync_microsoft,crm_mail_sync,base_vat \
             --test-enable --test-tags /mail_sync_microsoft,/crm_mail_sync \
             --stop-after-init --without-demo=all --no-http --log-level=test \
             2>&1 | tee odoo-test.log

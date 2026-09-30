@@ -110,7 +110,9 @@ class Router:
         return companies
 
     def _maybe_create_partners(self, addresses, domain_companies):
-        Partner = self.env["res.partner"]
+        # no_vat_validation: the new contact inherits the company's VAT via commercial-field
+        # sync; a VAT that was imported unvalidated must not block linking the mail.
+        Partner = self.env["res.partner"].with_context(no_vat_validation=True)
         mode = self.mailbox.auto_create_partner
         created = Partner.browse()
         if mode == "no" or not addresses:

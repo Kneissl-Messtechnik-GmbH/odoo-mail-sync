@@ -248,3 +248,15 @@ class TestSync(MailSyncCase):
         self.assertFalse(self.row("m1"))
         self.mailbox.job_delta(folders["inbox"].id)
         self.assertEqual(self.row("m1").state, "linked")
+
+    def test_auto_create_contact_under_company_with_invalid_vat(self):
+        """Commercial-field sync copies the company VAT to the new contact; that must not fail."""
+        company = self.musterwerk
+        company.with_context(no_vat_validation=True).write({"vat": "CHE-114.947.610 "})
+        self.mailbox.auto_create_partner = "company"
+        self.graph.add_message(INFO, "inbox", "m1", "Anfrage", "neu@musterwerk.de", [INFO])
+        self.discover()
+        self.sync_folder()
+        self.assertEqual(self.row("m1").state, "linked", self.row("m1").reason)
+        contact = self.env["res.partner"].search([("email", "=", "neu@musterwerk.de")])
+        self.assertEqual(contact.parent_id, company)
