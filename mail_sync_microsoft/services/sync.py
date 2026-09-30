@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 
 from odoo import fields
 
+from . import graph as graph_service
 from . import ingest as ingest_service
 from . import prefilter as pf
 from .router import get_router
@@ -139,8 +140,10 @@ def process_rows(mailbox, folder, rows, run):
                 process_message(mailbox, folder, row, run)
                 mailbox.env.flush_all()
         except Exception as exc:  # noqa: BLE001 - one message must not stop the folder
-            if type(exc).__name__ == "RetryableJobError" or exc.__class__.__module__.endswith("services.graph"):
+            transient = (graph_service.GraphThrottled, graph_service.GraphGone, graph_service.GraphUnauthorized)
+            if type(exc).__name__ == "RetryableJobError" or isinstance(exc, transient):
                 raise
+            # other Graph errors (e.g. oversized MIME, 404 on a vanished message) only affect this row
             run.bump("errors")
             _logger.exception("Mail Sync: Fehler bei Nachricht %s", row.get("id"))
             existing = Message.search([("mailbox_id", "=", mailbox.id), ("graph_id", "=", row.get("id"))], limit=1)

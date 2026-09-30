@@ -250,9 +250,9 @@ class GraphClient:
         for name in WELL_KNOWN_FOLDERS:
             try:
                 payload = self.get_json(f"users/{upn}/mailFolders/{name}", params={"$select": "id"})
-            except (GraphNotFound, GraphError) as exc:
-                if isinstance(exc, (GraphThrottled, GraphUnauthorized)):
-                    raise
+            except (GraphThrottled, GraphUnauthorized):
+                raise
+            except GraphError:
                 continue
             if payload and payload.get("id"):
                 mapping[payload["id"]] = name
