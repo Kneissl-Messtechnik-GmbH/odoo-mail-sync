@@ -7,6 +7,9 @@ Odoo-Schema `18.0.X.Y.Z`; jedes Modul wird getrennt geführt.
 
 ### 18.0.1.0.1 – 2026-09-30
 
+* Ordner-Jobs schreiben die Postfachzeile nicht mehr bei jedem Lauf (`last_sync` wird aus den
+  Ordnern berechnet); lange Backfill-Seiten scheiterten sonst dauerhaft mit
+  Serialisierungsfehlern gegen die kurzen Delta-Jobs der anderen Ordner.
 * Backfill-/Delta-Jobs desselben Ordners werden über eine Zeilensperre serialisiert; ein
   parallel gestarteter Job wird nach 60 s erneut eingeplant statt am Unique-Key des
   Registers zu scheitern.

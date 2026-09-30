@@ -261,6 +261,20 @@ class TestSync(MailSyncCase):
         self.mailbox.job_delta(folders["inbox"].id)
         self.assertEqual(self.row("m1").state, "linked")
 
+    def test_page_job_leaves_mailbox_row_alone(self):
+        """Folder jobs must not write the mailbox row (concurrent jobs would serialize-fail)."""
+        self.graph.add_message(INFO, "inbox", "m1", "Hallo", "max@musterwerk.de", [INFO])
+        folders = self.discover()
+        self.mailbox.job_delta(folders["inbox"].id)
+        self.assertEqual(self.mailbox.state, "connected")
+        self.assertTrue(self.mailbox.last_sync)
+        self.graph.add_message(INFO, "inbox", "m2", "Noch eins", "max@musterwerk.de", [INFO])
+        Mailbox = type(self.mailbox)
+        with patch.object(Mailbox, "write", autospec=True, side_effect=Mailbox.write) as spy:
+            self.mailbox.job_delta(folders["inbox"].id)
+        spy.assert_not_called()
+        self.assertEqual(self.row("m2").state, "linked")
+
 
 @tagged("post_install", "-at_install")
 class TestSyncWithFullRegistry(MailSyncCase):

@@ -72,7 +72,7 @@ class MailSyncMailbox(models.Model):
         default="draft",
         tracking=True,
     )
-    last_sync = fields.Datetime(readonly=True)
+    last_sync = fields.Datetime(compute="_compute_last_sync")
     last_error = fields.Text(readonly=True)
     refresh_token_enc = fields.Char(string="Refresh-Token (verschlüsselt)", groups="base.group_system", copy=False)
     folder_ids = fields.One2many("mail.sync.folder", "mailbox_id", string="Ordner")
@@ -87,6 +87,12 @@ class MailSyncMailbox(models.Model):
     def _compute_name(self):
         for mailbox in self:
             mailbox.name = mailbox.display_name or mailbox.upn or ""
+
+    @api.depends("folder_ids.last_sync")
+    def _compute_last_sync(self):
+        for mailbox in self:
+            dates = [d for d in mailbox.folder_ids.mapped("last_sync") if d]
+            mailbox.last_sync = max(dates) if dates else False
 
     def _compute_counts(self):
         Message = self.env["mail.sync.message"]
@@ -268,7 +274,16 @@ class MailSyncMailbox(models.Model):
             self.write({"state": "error", "last_error": str(exc)})
             run.finish(error=str(exc))
             raise RetryableJobError(str(exc), seconds=600) from exc
-        self.write({"state": "connected", "last_error": False, "last_sync": fields.Datetime.now()})
+        # Only touch the mailbox row when something changed: every folder job of this mailbox
+        # would otherwise update the same row and long page jobs would keep failing with
+        # serialization errors against the short delta jobs of the other folders.
+        vals = {}
+        if self.state != "connected":
+            vals["state"] = "connected"
+        if self.last_error:
+            vals["last_error"] = False
+        if vals:
+            self.write(vals)
         run.finish()
         return result
 
