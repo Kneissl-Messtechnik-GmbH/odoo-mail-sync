@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_message_view_list_crm" model="ir.ui.view">
+        <field name="name">mail.sync.message.list.crm</field>
+        <field name="model">mail.sync.message</field>
+        <field name="inherit_id" ref="mail_sync_microsoft.mail_sync_message_view_list"/>
+        <field name="arch" type="xml">
+            <field name="record_display" position="after">
+                <field name="candidate_lead_ids" widget="many2many_tags" optional="show"/>
+                <field name="lead_proposal" optional="hide"/>
+            </field>
+            <button name="action_share" position="before">
+                <button name="action_link_wizard" type="object" string="Verknüpfen" icon="fa-link" invisible="visibility == 'private'"/>
+                <button name="action_create_lead" type="object" string="Lead anlegen" icon="fa-plus" invisible="not lead_proposal"/>
+            </button>
+        </field>
+    </record>
+
+    <record id="mail_sync_message_view_form_crm" model="ir.ui.view">
+        <field name="name">mail.sync.message.form.crm</field>
+        <field name="model">mail.sync.message</field>
+        <field name="inherit_id" ref="mail_sync_microsoft.mail_sync_message_view_form"/>
+        <field name="arch" type="xml">
+            <button name="action_share" position="before">
+                <button name="action_link_wizard" type="object" string="Verknüpfen" invisible="visibility == 'private'"/>
+                <button name="action_create_lead" type="object" string="Lead anlegen" invisible="not lead_proposal"/>
+            </button>
+            <field name="record_display" position="after">
+                <field name="lead_id"/>
+                <field name="candidate_lead_ids" widget="many2many_tags"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="mail_sync_message_view_search_crm" model="ir.ui.view">
+        <field name="name">mail.sync.message.search.crm</field>
+        <field name="model">mail.sync.message</field>
+        <field name="inherit_id" ref="mail_sync_microsoft.mail_sync_message_view_search"/>
+        <field name="arch" type="xml">
+            <filter name="private" position="before">
+                <filter name="suggestions" string="Vorschläge" domain="['|', ('has_candidates', '=', True), ('lead_proposal', '=', True)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="mail_sync_message_action_suggestions" model="ir.actions.act_window">
+        <field name="name">Vorschläge</field>
+        <field name="res_model">mail.sync.message</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain">['|', ('has_candidates', '=', True), ('lead_proposal', '=', True)]</field>
+    </record>
+
+    <menuitem id="mail_sync_message_menu_suggestions" name="E-Mail-Vorschläge" parent="crm.crm_menu_root" action="mail_sync_message_action_suggestions" sequence="45" groups="mail_sync_microsoft.group_mail_sync_user"/>
+</odoo>

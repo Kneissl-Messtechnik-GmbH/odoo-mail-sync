@@ -187,6 +187,7 @@ def process_message(mailbox, folder, row, run):
         res_id=result.target.id if result.target else 0,
         error=False,
     )
+    vals.update(result.extra or {})  # extension-provided field values (e.g. CRM candidates)
     if existing_message and existing_message.model:
         vals.update(
             state="linked",

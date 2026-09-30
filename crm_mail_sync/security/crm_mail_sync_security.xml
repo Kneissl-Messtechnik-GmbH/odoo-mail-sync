@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <!-- Sales users see synchronised conversations (record rules of mail_sync_microsoft apply). -->
+    <record id="sales_team.group_sale_salesman" model="res.groups">
+        <field name="implied_ids" eval="[(4, ref('mail_sync_microsoft.group_mail_sync_user'))]"/>
+    </record>
+</odoo>

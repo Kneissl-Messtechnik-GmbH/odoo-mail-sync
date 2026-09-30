@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_mailbox_view_form_crm" model="ir.ui.view">
+        <field name="name">mail.sync.mailbox.form.crm</field>
+        <field name="model">mail.sync.mailbox</field>
+        <field name="inherit_id" ref="mail_sync_microsoft.mail_sync_mailbox_view_form"/>
+        <field name="arch" type="xml">
+            <field name="auto_create_partner" position="after">
+                <field name="is_sales_mailbox"/>
+                <field name="lead_proposal" invisible="not is_sales_mailbox"/>
+                <field name="lead_team_id" invisible="not is_sales_mailbox"/>
+            </field>
+        </field>
+    </record>
+</odoo>

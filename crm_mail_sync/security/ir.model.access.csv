@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mail_sync_link_wizard_user,mail.sync.link.wizard.user,model_mail_sync_link_wizard,mail_sync_microsoft.group_mail_sync_user,1,1,1,1

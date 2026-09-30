@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_link_wizard_view_form" model="ir.ui.view">
+        <field name="name">mail.sync.link.wizard.form</field>
+        <field name="model">mail.sync.link.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <field name="candidate_lead_ids" widget="many2many_tags" invisible="not candidate_lead_ids"/>
+                    <field name="lead_id" options="{'no_create': True}"/>
+                    <field name="include_conversation"/>
+                    <field name="message_ids" widget="many2many_tags" readonly="1"/>
+                </group>
+                <footer>
+                    <button name="action_link" string="Verknüpfen" type="object" class="btn-primary" invisible="not lead_id"/>
+                    <button name="action_unlink" string="Zuordnung lösen" type="object"/>
+                    <button string="Abbrechen" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_sync_link_wizard_action" model="ir.actions.act_window">
+        <field name="name">Konversation verknüpfen</field>
+        <field name="res_model">mail.sync.link.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="mail_sync_microsoft.model_mail_sync_message"/>
+        <field name="binding_view_types">list,form</field>
+    </record>
+</odoo>
