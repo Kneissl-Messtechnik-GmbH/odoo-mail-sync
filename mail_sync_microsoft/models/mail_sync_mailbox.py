@@ -179,6 +179,7 @@ class MailSyncMailbox(models.Model):
                 mailbox.with_delay(
                     channel=CHANNEL,
                     description=f"Mail Sync: Backfill {mailbox.upn}/{folder.display_name}",
+                    identity_key=f"mail_sync_backfill_{folder.id}",
                     max_retries=50,
                 ).job_backfill(folder.id)
         return True
@@ -202,6 +203,15 @@ class MailSyncMailbox(models.Model):
     def _enqueue_delta(self, force=False):
         for mailbox in self.filtered(lambda m: m.active and m.state in ("connected", "draft")):
             for folder in mailbox.folder_ids.filtered("include"):
+                if not folder.backfill_done:
+                    # initial load still pending: (re)queue the backfill once instead of a delta
+                    mailbox.with_delay(
+                        channel=CHANNEL,
+                        description=f"Mail Sync: Backfill {mailbox.upn}/{folder.display_name}",
+                        identity_key=f"mail_sync_backfill_{folder.id}",
+                        max_retries=50,
+                    ).job_backfill(folder.id)
+                    continue
                 mailbox.with_delay(
                     channel=CHANNEL,
                     description=f"Mail Sync: Delta {mailbox.upn}/{folder.display_name}",
