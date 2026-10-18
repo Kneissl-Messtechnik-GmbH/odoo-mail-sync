@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_company_form_mail_sync_send" model="ir.ui.view">
+        <field name="name">res.company.form.mail.sync.send</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='general_info']" position="after">
+                <page string="E-Mail-Signaturen" name="mail_sync_signatures" groups="mail_sync_microsoft.group_mail_sync_manager">
+                    <group>
+                        <field name="mail_sync_personal_signature_id" context="{'default_usage': 'personal'}"/>
+                        <field name="mail_sync_shared_signature_id" context="{'default_usage': 'shared'}"/>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="ir_mail_server_form_mail_sync_send" model="ir.ui.view">
+        <field name="name">ir.mail_server.form.mail.sync.send</field>
+        <field name="model">ir.mail_server</field>
+        <field name="inherit_id" ref="base.ir_mail_server_form"/>
+        <field name="arch" type="xml">
+            <field name="from_filter" position="after">
+                <field name="mail_sync_mailbox_id" invisible="smtp_authentication != 'mail_sync_graph'" required="smtp_authentication == 'mail_sync_graph'"/>
+            </field>
+        </field>
+    </record>
+</odoo>

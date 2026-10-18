@@ -117,6 +117,69 @@ selbst:
 Der Zugriff ist auf das Postfach des angemeldeten Benutzers beschränkt; Funktionspostfächer
 sind nur erreichbar, wenn der Benutzer sich mit deren Konto anmelden kann.
 
+## 3a. Empfohlen: Beides (Funktionspostfächer zentral, persönliche Postfächer je Benutzer)
+
+Verbindung mit `auth_mode = Beides` anlegen. Funktionspostfächer (`kind = shared`) laufen über
+die Anwendungsberechtigung aus Abschnitt 2, persönliche Postfächer über den delegierten Weg aus
+Abschnitt 3; der Modus steht am Postfach („Zugriff“) und lässt sich dort je Postfach ändern.
+Jeder Benutzer verbindet sein Postfach selbst unter **Mein Profil → E-Mail & Signatur →
+„Mein Postfach verbinden“**. Dafür braucht die App-Registrierung zusätzlich:
+
+* Umleitungs-URI (Web): `https://<odoo>/mail_sync/oauth/callback`
+* Delegierte Berechtigungen: `Mail.Read`, `Mail.Send`, `offline_access`, `User.Read`,
+  mit Administratorzustimmung für die Organisation.
+
+## 3b. Senden über Microsoft 365 (`mail_sync_send`)
+
+Odoo verschickt Mails dann nicht mehr per SMTP, sondern über Graph `sendMail` direkt aus dem
+Postfach; die Mail liegt danach in dessen „Gesendete Elemente“.
+
+* **Funktionspostfächer (App-Modus):** zusätzlich die Rolle „Application Mail.Send“ im selben
+  Scope zuweisen:
+
+  ```powershell
+  New-ManagementRoleAssignment -App <app-id> -Role "Application Mail.Send" `
+      -CustomResourceScope "MailSyncScope"
+  ```
+
+* **Persönliche Postfächer (delegiert):** Berechtigung `Mail.Send` (siehe 3a). Bereits
+  verbundene Postfächer einmal neu verbinden, damit das Token die neue Berechtigung enthält.
+* In Odoo am Postfach **Versand & Signatur → „Versand über dieses Postfach“** aktivieren. Odoo legt
+  dafür einen Ausgangsserver „Microsoft 365: <adresse>“ an (Typ „Microsoft 365 Graph“, Absenderfilter
+  = Postfachadresse, Priorität 5). Ein bestehender SMTP-Server mit demselben Absenderfilter wird
+  dadurch verdrängt und kann archiviert werden.
+* „Testmail senden“ schickt eine Mail mit der Signatur an den angemeldeten Benutzer.
+* Grenze: Graph nimmt Mails bis etwa 3 MB einschließlich Anhängen an. Größere Mails schlagen mit
+  einer lesbaren Meldung fehl.
+
+**Wer sendet wie?**
+
+| Situation | Absender | Signatur |
+|---|---|---|
+| Nachricht im Chatter, Datensatz mit Funktionspostfach als Standard (z. B. Verkaufschancen → kundenservice@) | `Kneissl Kundenservice <kundenservice@…>` (optional `Max Muster \| Kneissl Kundenservice`) | Signatur des Funktionspostfachs mit der sendenden Person als Ansprechpartner |
+| E-Mail-Fenster, Feld „Senden über“ | gewähltes Postfach | wie oben bzw. persönliche Signatur |
+| Persönlich verbunden, sonst | `Max Muster <m.muster@…>` aus dem eigenen Postfach | persönliche Signatur |
+
+## 3c. Signatur-Manager
+
+**Einstellungen → E-Mail-Sync → Signaturen.** Eine Vorlage für alle; Platzhalter wie `{{name}}`,
+`{{function}}`, `{{phone}}`, `{{photo_url}}`, `{{company_logo_url}}` werden je Person eingesetzt
+(vollständige Liste im Reiter „Platzhalter“). Absätze, deren Platzhalter leer sind, entfallen samt
+Beschriftung, z. B. „Mobil: …“ bei Personen ohne Mobilnummer.
+
+* Persönliche Vorlage: Standard je Firma (**Firma → E-Mail-Signaturen**) oder je Benutzer. Odoo
+  schreibt die fertige Signatur in das normale Signaturfeld des Benutzers und aktualisiert sie bei
+  Änderungen an Vorlage, Name, Funktion, Telefon oder Profilbild sowie nachts.
+* Funktionspostfach-Vorlage: am Postfach oder als Firmenstandard. `{{mailbox_name}}` und
+  `{{mailbox_email}}` sind das Postfach, alle Personen-Platzhalter die sendende Person.
+* Jeder Benutzer kann unter **Mein Profil → E-Mail & Signatur** einen persönlichen Zusatz pflegen
+  (`{{extra}}`, z. B. Banner, Abwesenheit) und die zentrale Verwaltung abschalten.
+* **Bilder:** Profilbild, Firmenlogo und im Editor hochgeladene Bilder werden als öffentliche
+  Anhänge unter `<basis-url>/web/image/<id>/<name>` abgelegt, damit Empfänger sie ohne Anmeldung
+  laden. Basis ist `web.base.url`; liegt Odoo hinter einem Zugangsschutz (z. B. Basic-Auth auf
+  Staging), den Systemparameter `mail_sync.signature_base_url` auf eine öffentlich erreichbare
+  Adresse setzen. Benutzer können nur selbst hochgeladene Bilder veröffentlichen.
+
 ## 4. Odoo-Seite
 
 ### 4.1 Voraussetzungen

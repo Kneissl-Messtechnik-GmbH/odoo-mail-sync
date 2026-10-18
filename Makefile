@@ -8,8 +8,8 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
-MODULES     ?= mail_sync_microsoft,crm_mail_sync
-TEST_TAGS   ?= /mail_sync_microsoft,/crm_mail_sync
+MODULES     ?= mail_sync_microsoft,crm_mail_sync,mail_sync_send
+TEST_TAGS   ?= /mail_sync_microsoft,/crm_mail_sync,/mail_sync_send
 ODOO_IMAGE  ?= odoo:18.0
 PGHOST      ?= 127.0.0.1
 PGPORT      ?= 5432

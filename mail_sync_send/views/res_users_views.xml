@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="view_users_form_mail_sync_send" model="ir.ui.view">
+        <field name="name">res.users.form.mail.sync.send</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='preferences']" position="after">
+                <page string="E-Mail &amp; Signatur" name="mail_sync_signature">
+                    <group>
+                        <group string="Versand">
+                            <field name="mail_sync_send_mailbox_id" options="{'no_create': True}" domain="['|', ('kind', '=', 'shared'), ('owner_user_id', '=', id)]"/>
+                        </group>
+                        <group string="Signatur">
+                            <field name="mail_sync_signature_managed"/>
+                            <field name="mail_sync_signature_id" invisible="not mail_sync_signature_managed" placeholder="Standard der Firma" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+                    <group invisible="not mail_sync_signature_managed">
+                        <field name="mail_sync_signature_extra" options="{'codeview': false}"/>
+                    </group>
+                    <separator string="Vorschau"/>
+                    <field name="mail_sync_signature_preview" readonly="1" nolabel="1"/>
+                    <button name="action_mail_sync_apply_signature" type="object" string="Signatur jetzt aktualisieren" class="btn-secondary" invisible="not mail_sync_signature_managed"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_users_form_simple_modif_mail_sync_send" model="ir.ui.view">
+        <field name="name">res.users.preferences.mail.sync.send</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form_simple_modif"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook/page[@name='preferences_page']" position="after">
+                <page string="E-Mail &amp; Signatur" name="mail_sync_signature">
+                    <group>
+                        <group string="Versand">
+                            <field name="mail_sync_send_mailbox_id" options="{'no_create': True, 'no_open': True}" domain="['|', ('kind', '=', 'shared'), ('owner_user_id', '=', id)]"/>
+                            <button name="action_connect_mailbox" type="object" string="Mein Postfach verbinden" class="btn-secondary" colspan="2"/>
+                        </group>
+                        <group string="Signatur">
+                            <field name="mail_sync_signature_managed"/>
+                            <field name="mail_sync_signature_id" invisible="not mail_sync_signature_managed" placeholder="Standard der Firma" options="{'no_create': True, 'no_open': True}"/>
+                        </group>
+                    </group>
+                    <group invisible="not mail_sync_signature_managed">
+                        <field name="mail_sync_signature_extra"/>
+                    </group>
+                    <separator string="Vorschau"/>
+                    <field name="mail_sync_signature_preview" readonly="1" nolabel="1"/>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

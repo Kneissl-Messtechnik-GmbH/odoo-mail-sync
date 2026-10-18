@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mail_sync_signature_manager,mail.sync.signature.manager,model_mail_sync_signature,mail_sync_microsoft.group_mail_sync_manager,1,1,1,1
+access_mail_sync_signature_user,mail.sync.signature.user,model_mail_sync_signature,base.group_user,1,0,0,0
+access_mail_sync_mailbox_internal,mail.sync.mailbox.internal,mail_sync_microsoft.model_mail_sync_mailbox,base.group_user,1,0,0,0

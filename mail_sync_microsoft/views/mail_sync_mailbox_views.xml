@@ -26,7 +26,8 @@
                     <group>
                         <group string="Postfach">
                             <field name="account_id"/>
-                            <field name="auth_mode"/>
+                            <field name="account_auth_mode" invisible="1"/>
+                            <field name="auth_mode" readonly="account_auth_mode != 'hybrid'"/>
                             <field name="display_name"/>
                             <field name="kind"/>
                             <field name="owner_user_id"/>

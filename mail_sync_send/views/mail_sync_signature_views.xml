@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_signature_view_form" model="ir.ui.view">
+        <field name="name">mail.sync.signature.form</field>
+        <field name="model">mail.sync.signature</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <widget name="web_ribbon" title="Archiviert" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title"><h1><field name="name" placeholder="z. B. Standard Kneissl"/></h1></div>
+                    <group>
+                        <group>
+                            <field name="usage" widget="radio"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                        </group>
+                        <group string="Vorschau mit">
+                            <field name="preview_user_id" placeholder="Ich selbst"/>
+                            <field name="preview_mailbox_id" invisible="usage != 'shared'"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Vorlage" name="template">
+                            <field name="body_html" options="{'codeview': true}"/>
+                        </page>
+                        <page string="Vorschau" name="preview">
+                            <field name="preview_html" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Platzhalter" name="placeholders">
+                            <p class="text-muted">
+                                Platzhalter in Text, Links und Bildadressen verwenden, z. B.
+                                <code>&lt;a href="tel:{{phone_link}}"&gt;{{phone}}&lt;/a&gt;</code> oder
+                                <code>&lt;img src="{{photo_url}}" width="80"/&gt;</code>.
+                                Hochgeladene Bilder werden beim Speichern öffentlich abrufbar gemacht, damit
+                                Empfänger sie laden können.
+                            </p>
+                            <field name="placeholder_help" readonly="1" nolabel="1"/>
+                        </page>
+                        <page string="Verwendung" name="usage_page">
+                            <group>
+                                <field name="user_ids" widget="many2many_tags" readonly="1" invisible="usage != 'personal'"/>
+                                <field name="mailbox_ids" widget="many2many_tags" readonly="1" invisible="usage != 'shared'"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="mail_sync_signature_view_list" model="ir.ui.view">
+        <field name="name">mail.sync.signature.list</field>
+        <field name="model">mail.sync.signature</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="usage"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="mail_sync_signature_view_search" model="ir.ui.view">
+        <field name="name">mail.sync.signature.search</field>
+        <field name="model">mail.sync.signature</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <filter name="personal" string="Persönlich" domain="[('usage', '=', 'personal')]"/>
+                <filter name="shared" string="Funktionspostfächer" domain="[('usage', '=', 'shared')]"/>
+                <separator/>
+                <filter name="archived" string="Archiviert" domain="[('active', '=', False)]"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="mail_sync_signature_action" model="ir.actions.act_window">
+        <field name="name">Signaturen</field>
+        <field name="res_model">mail.sync.signature</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Erste Signaturvorlage anlegen</p>
+            <p>Eine Vorlage für alle: Name, Funktion, Telefon und Foto werden je Person eingesetzt.</p>
+        </field>
+    </record>
+</odoo>

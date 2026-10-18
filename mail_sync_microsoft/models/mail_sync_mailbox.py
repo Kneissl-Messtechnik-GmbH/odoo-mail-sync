@@ -28,7 +28,16 @@ class MailSyncMailbox(models.Model):
     name = fields.Char(compute="_compute_name", store=True)
     account_id = fields.Many2one("mail.sync.account", required=True, ondelete="cascade", index=True)
     company_id = fields.Many2one(related="account_id.company_id", store=True)
-    auth_mode = fields.Selection(related="account_id.auth_mode")
+    auth_mode = fields.Selection(
+        [("app", "Zentral (Anwendungsberechtigung)"), ("delegated", "Benutzer verbindet selbst (delegiert)")],
+        string="Zugriff",
+        compute="_compute_auth_mode",
+        store=True,
+        readonly=False,
+        precompute=True,
+        help="Wird aus der Verbindung abgeleitet; im Modus „Beides“ je Postfach wählbar.",
+    )
+    account_auth_mode = fields.Selection(related="account_id.auth_mode", string="Modus der Verbindung")
     upn = fields.Char(string="Postfach (UPN / E-Mail)", required=True, tracking=True)
     display_name = fields.Char(string="Anzeigename")
     kind = fields.Selection(
@@ -88,6 +97,15 @@ class MailSyncMailbox(models.Model):
         for mailbox in self:
             mailbox.name = mailbox.display_name or mailbox.upn or ""
 
+    @api.depends("account_id.auth_mode", "kind")
+    def _compute_auth_mode(self):
+        for mailbox in self:
+            mode = mailbox.account_id.auth_mode
+            if mode == "hybrid":
+                mailbox.auth_mode = "delegated" if mailbox.kind == "personal" else "app"
+            else:
+                mailbox.auth_mode = mode or "app"
+
     @api.depends("folder_ids.last_sync")
     def _compute_last_sync(self):
         for mailbox in self:
@@ -146,7 +164,7 @@ class MailSyncMailbox(models.Model):
     def _graph(self):
         self.ensure_one()
         account = self.account_id
-        if account.auth_mode == "app":
+        if self.auth_mode != "delegated":
             return account._graph()
         refresh_token = self._load_refresh_token()
         if not refresh_token:

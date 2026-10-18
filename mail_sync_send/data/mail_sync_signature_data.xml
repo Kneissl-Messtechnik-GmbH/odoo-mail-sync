@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo noupdate="1">
+    <!-- Starting points; assign them under Settings > Companies > E-Mail-Signaturen or per user/mailbox. -->
+    <record id="signature_personal_default" model="mail.sync.signature">
+        <field name="name">Standard (persönlich)</field>
+        <field name="usage">personal</field>
+        <field name="sequence">10</field>
+        <field name="body_html" type="html">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;color:#1f2933;">
+    <tr>
+        <td style="padding:0 16px 0 0;vertical-align:top;"><img src="{{photo_url}}" width="72" height="72" alt="{{name}}" style="display:block;width:72px;height:72px;border-radius:50%;object-fit:cover;"/></td>
+        <td style="vertical-align:top;border-left:3px solid #0b5394;padding:0 0 0 14px;">
+            <p style="margin:0;font-size:15px;font-weight:bold;color:#0b2540;">{{name}}</p>
+            <p style="margin:0;color:#52606d;">{{function}}</p>
+            <p style="margin:8px 0 0 0;">Telefon: <a href="tel:{{phone_link}}" style="color:#1f2933;text-decoration:none;">{{phone}}</a></p>
+            <p style="margin:0;">Mobil: <a href="tel:{{mobile_link}}" style="color:#1f2933;text-decoration:none;">{{mobile}}</a></p>
+            <p style="margin:0;"><a href="mailto:{{email}}" style="color:#0b5394;text-decoration:none;">{{email}}</a></p>
+            <p style="margin:10px 0 0 0;"><img src="{{company_logo_url}}" height="32" alt="{{company_name}}" style="display:block;height:32px;width:auto;"/></p>
+            <p style="margin:6px 0 0 0;font-weight:bold;">{{company_name}}</p>
+            <p style="margin:0;color:#52606d;">{{company_street}} · {{company_zip}} {{company_city}}</p>
+            <p style="margin:0;"><a href="{{company_website_url}}" style="color:#0b5394;text-decoration:none;">{{company_website}}</a></p>
+            <div style="margin:10px 0 0 0;">{{extra}}</div>
+            <p style="margin:10px 0 0 0;font-size:11px;color:#7b8794;">{{company_registry}} · USt-IdNr. {{company_vat}}</p>
+        </td>
+    </tr>
+</table>
+        </field>
+    </record>
+
+    <record id="signature_shared_default" model="mail.sync.signature">
+        <field name="name">Standard (Funktionspostfach)</field>
+        <field name="usage">shared</field>
+        <field name="sequence">20</field>
+        <field name="body_html" type="html">
+<table cellpadding="0" cellspacing="0" border="0" style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.45;color:#1f2933;">
+    <tr>
+        <td style="vertical-align:top;border-left:3px solid #0b5394;padding:0 0 0 14px;">
+            <p style="margin:0;font-size:15px;font-weight:bold;color:#0b2540;">{{mailbox_name}}</p>
+            <p style="margin:0;"><a href="mailto:{{mailbox_email}}" style="color:#0b5394;text-decoration:none;">{{mailbox_email}}</a> · <a href="tel:{{company_phone_link}}" style="color:#1f2933;text-decoration:none;">{{company_phone}}</a></p>
+            <p style="margin:10px 0 2px 0;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#7b8794;">Ihr Ansprechpartner</p>
+            <table cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td style="padding:0 12px 0 0;vertical-align:top;"><img src="{{photo_url}}" width="48" height="48" alt="{{name}}" style="display:block;width:48px;height:48px;border-radius:50%;object-fit:cover;"/></td>
+                    <td style="vertical-align:top;">
+                        <p style="margin:0;font-weight:bold;">{{name}}</p>
+                        <p style="margin:0;color:#52606d;">{{function}}</p>
+                        <p style="margin:0;">Direkt: <a href="tel:{{phone_link}}" style="color:#1f2933;text-decoration:none;">{{phone}}</a></p>
+                    </td>
+                </tr>
+            </table>
+            <p style="margin:10px 0 0 0;"><img src="{{company_logo_url}}" height="32" alt="{{company_name}}" style="display:block;height:32px;width:auto;"/></p>
+            <p style="margin:6px 0 0 0;font-weight:bold;">{{company_name}}</p>
+            <p style="margin:0;color:#52606d;">{{company_street}} · {{company_zip}} {{company_city}}</p>
+            <p style="margin:0;"><a href="{{company_website_url}}" style="color:#0b5394;text-decoration:none;">{{company_website}}</a></p>
+            <p style="margin:10px 0 0 0;font-size:11px;color:#7b8794;">{{company_registry}} · USt-IdNr. {{company_vat}}</p>
+        </td>
+    </tr>
+</table>
+        </field>
+    </record>
+</odoo>

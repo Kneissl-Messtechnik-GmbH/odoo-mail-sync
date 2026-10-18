@@ -3,7 +3,35 @@
 Alle nennenswerten Änderungen an den Modulen dieses Repositories. Versionen folgen dem
 Odoo-Schema `18.0.X.Y.Z`; jedes Modul wird getrennt geführt.
 
+## mail_sync_send
+
+### 18.0.1.0.0 – 2026-10-18
+
+Erste Version.
+
+* Ausgangsserver-Typ „Microsoft 365 Graph“: `ir.mail_server.connect()` liefert für diese Server
+  eine Sitzung, die die fertige MIME-Nachricht über Graph `sendMail` aus dem verknüpften Postfach
+  sendet (App-Modus für Funktionspostfächer, delegiert für persönliche). Bcc-Empfänger aus dem
+  Umschlag werden als Kopfzeile ergänzt, Graph-Fehler als Zustellfehler gemeldet.
+* Am Postfach: Versand ein/aus (legt den Ausgangsserver an), Absendername und -anzeige
+  („Postfach“ oder „Person | Postfach“), berechtigte Benutzer, Standard-Absender je Modell,
+  Signatur, Testmail.
+* Absenderwahl: Feld „Senden über“ im E-Mail-Fenster; Chatter-Nachrichten gehen über das für das
+  Modell bzw. den Benutzer hinterlegte Funktionspostfach, die Person bleibt Autor.
+* Signatur-Manager: Vorlagen für persönliche Postfächer und Funktionspostfächer mit Platzhaltern,
+  Wegfall leerer Zeilen samt Beschriftung, Vorschau je Person und Postfach; persönliche Signaturen
+  werden in `res.users.signature` erzeugt und bei Änderungen sowie nachts aktualisiert;
+  Funktionspostfach-Signaturen werden beim Versand mit der sendenden Person gerendert.
+* Öffentliche Bilder: Profilbild, Firmenlogo und Editor-Bilder als öffentliche Anhänge mit
+  stabiler absoluter Adresse (`mail_sync.signature_base_url` überschreibt `web.base.url`).
+
 ## mail_sync_microsoft
+
+### 18.0.1.1.0 – 2026-10-18
+
+* Verbindungsmodus „Beides“: Funktionspostfächer über die Anwendungsberechtigung, persönliche
+  Postfächer delegiert je Benutzer; der Zugriff steht jetzt am Postfach (`auth_mode`, gespeichert).
+* Delegierte Anmeldung fordert zusätzlich `Mail.Send` an; neuer Graph-Aufruf `send_mime()`.
 
 ### 18.0.1.0.1 – 2026-09-30
 

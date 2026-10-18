@@ -7,6 +7,7 @@ plus a few smarter rules.
 | Module | Purpose |
 |---|---|
 | `mail_sync_microsoft` | Microsoft Graph connection (app-only or per-user), mailbox and folder management, delta sync, participant matching to contacts, visibility rules, routing log |
+| `mail_sync_send` | Sends Odoo mails through shared or personal Microsoft 365 mailboxes via Graph (lands in *Sent Items*), "send as" choice in the composer and per model, central signature manager with per-person placeholders and publicly hosted images |
 | `crm_mail_sync` | Links conversations to CRM opportunities (`crm.lead`): unique-open-deal rule, deal references in subjects, scoring for ambiguous cases, suggestions instead of silent drops |
 
 * Odoo 18.0 (branch `18.0`) and 19.0 (branch `19.0`), Community edition, self-hosted
