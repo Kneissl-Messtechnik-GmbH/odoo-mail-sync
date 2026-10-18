@@ -14,6 +14,22 @@ from lxml import etree, html
 from markupsafe import Markup, escape
 
 PLACEHOLDER_RE = re.compile(r"\{\{\s*([a-z_][a-z0-9_]*)\s*\}\}")
+# lxml (and Odoo's sanitizer, which uses it) percent-encodes "{" and "}" inside href/src on
+# newer versions: "{{photo_url}}" comes back as "%7B%7Bphoto_url%7D%7D". Placeholders are
+# therefore swapped for an inert token before any lxml round trip, and both spellings are
+# accepted on input.
+_ANY_PLACEHOLDER_RE = re.compile(r"(?:\{\{|%7[Bb]%7[Bb])\s*([a-z_][a-z0-9_]*)\s*(?:\}\}|%7[Dd]%7[Dd])")
+_TOKEN_RE = re.compile(r"zzph([a-z_][a-z0-9_]*?)phzz")
+
+
+def _tokenize(text):
+    return _ANY_PLACEHOLDER_RE.sub(lambda m: f"zzph{m.group(1)}phzz", text)
+
+
+def _detokenize(text):
+    return _TOKEN_RE.sub(lambda m: "{{" + m.group(1) + "}}", text)
+
+
 RAW_PLACEHOLDERS = {"extra"}
 
 # Documented placeholders (shown in the template form).
@@ -61,7 +77,8 @@ def tel_link(number):
 
 
 def placeholders_in(text):
-    return PLACEHOLDER_RE.findall(text or "")
+    text = text or ""
+    return _TOKEN_RE.findall(text) + _ANY_PLACEHOLDER_RE.findall(text)
 
 
 def _own_placeholders(element):
@@ -114,7 +131,7 @@ def render(template_html, values):
     def value(name):
         return values.get(name) or ""
 
-    root = html.fragment_fromstring(str(template_html), create_parent="div")
+    root = html.fragment_fromstring(_tokenize(str(template_html)), create_parent="div")
     # innermost first, so that a removed child can make its parent label-only
     for element in reversed(list(root.iter())):
         if element is root or not isinstance(element.tag, str):
@@ -135,7 +152,7 @@ def render(template_html, values):
         return str(escape(raw))
 
     # template HTML is sanitised by the field, every substituted value is escaped (or pre-sanitised extra)
-    return Markup(PLACEHOLDER_RE.sub(substitute, rendered))  # noqa: S704
+    return Markup(_TOKEN_RE.sub(substitute, rendered))  # noqa: S704
 
 
 def rewrite_image_sources(body_html, resolve):
@@ -147,11 +164,11 @@ def rewrite_image_sources(body_html, resolve):
     """
     if not body_html or "<img" not in str(body_html):
         return body_html
-    root = html.fragment_fromstring(str(body_html), create_parent="div")
+    root = html.fragment_fromstring(_tokenize(str(body_html)), create_parent="div")
     changed = False
     for img in root.iter("img"):
         src = img.get("src") or ""
-        if not src or PLACEHOLDER_RE.search(src):
+        if not src or _TOKEN_RE.search(src):
             continue
         new_src = resolve(src)
         if new_src and new_src != src:
@@ -159,7 +176,9 @@ def rewrite_image_sources(body_html, resolve):
             changed = True
     if not changed:
         return body_html
-    return "".join([root.text or ""] + [etree.tostring(child, encoding="unicode", method="html") for child in root])
+    return _detokenize(
+        "".join([root.text or ""] + [etree.tostring(child, encoding="unicode", method="html") for child in root])
+    )
 
 
 def attachment_id_from_src(src):

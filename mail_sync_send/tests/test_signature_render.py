@@ -52,3 +52,13 @@ class TestSignatureRender(BaseCase):
         out = signature.rewrite_image_sources(html, lambda src: f"https://pub/{signature.attachment_id_from_src(src)}")
         self.assertIn('src="https://pub/42"', out)
         self.assertIn('src="{{photo_url}}"', out)
+
+    def test_percent_encoded_placeholders_from_sanitizer(self):
+        # newer lxml/sanitizer versions store href/src placeholders percent-encoded
+        out = signature.render(
+            '<p><a href="tel:%7B%7Bphone_link%7D%7D">{{phone}}</a><img src="%7B%7Bphoto_url%7D%7D"></p>',
+            {"phone": "+49 1", "phone_link": "+491", "photo_url": "https://x/1.png"},
+        )
+        self.assertIn('href="tel:+491"', out)
+        self.assertIn('src="https://x/1.png"', out)
+        self.assertNotIn("%7B", out)
