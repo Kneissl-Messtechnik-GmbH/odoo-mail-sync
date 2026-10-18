@@ -9,7 +9,6 @@
     "website": "https://github.com/Kneissl-Messtechnik-GmbH/odoo-mail-sync",
     "license": "LGPL-3",
     "depends": ["mail", "mail_sync_microsoft"],
-    "external_dependencies": {"python": ["lxml", "markupsafe"]},
     "data": [
         "security/ir.model.access.csv",
         "data/mail_sync_signature_data.xml",
