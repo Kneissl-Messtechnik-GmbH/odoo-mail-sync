@@ -1,0 +1,38 @@
+# Asks KMT-Odoo to pull this version after every push to 18.0 (update PR, auto-merge, staging deploy).
+# Template and docs: KMT-Odoo ci/templates/notify-kmt-odoo.yml, docs/external-apps.md
+name: Notify KMT-Odoo
+
+on:
+  push:
+    branches: ["18.0"]
+  workflow_dispatch:
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    env:
+      HAS_APP: ${{ secrets.KMT_APP_ID != '' }}
+    steps:
+      - name: Skip without App secrets
+        if: env.HAS_APP != 'true'
+        run: echo "::notice::KMT_APP_ID/KMT_APP_PRIVATE_KEY fehlen – KMT-Odoo holt die Änderung beim täglichen Lauf ab."
+
+      - name: Create App token
+        if: env.HAS_APP == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.KMT_APP_ID }}
+          private-key: ${{ secrets.KMT_APP_PRIVATE_KEY }}
+          owner: Kneissl-Messtechnik-GmbH
+          repositories: KMT-Odoo
+
+      - name: Dispatch to KMT-Odoo
+        if: env.HAS_APP == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          gh api repos/Kneissl-Messtechnik-GmbH/KMT-Odoo/dispatches \
+            -f event_type=external-app-updated \
+            -F "client_payload[repository]=${{ github.repository }}" \
+            -F "client_payload[sha]=${{ github.sha }}"
