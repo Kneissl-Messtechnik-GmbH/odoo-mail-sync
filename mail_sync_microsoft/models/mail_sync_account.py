@@ -31,10 +31,16 @@ class MailSyncAccount(models.Model):
     tenant_id = fields.Char(string="Tenant-ID", required=True, tracking=True)
     client_id = fields.Char(string="Client-ID (App-ID)", required=True, tracking=True)
     auth_mode = fields.Selection(
-        [("app", "Zentral (Anwendungsberechtigung, Exchange-Freigabe)"), ("delegated", "Je Benutzer (delegiert)")],
+        [
+            ("app", "Zentral (Anwendungsberechtigung, Exchange-Freigabe)"),
+            ("delegated", "Je Benutzer (delegiert)"),
+            ("hybrid", "Beides: Funktionspostfächer zentral, persönliche Postfächer je Benutzer"),
+        ],
         required=True,
         default="app",
         tracking=True,
+        help="Im Modus „Beides“ verbindet jeder Benutzer sein persönliches Postfach selbst (delegiert), "
+        "Funktionspostfächer wie info@ laufen über die Anwendungsberechtigung.",
     )
     credential_source = fields.Selection(
         [

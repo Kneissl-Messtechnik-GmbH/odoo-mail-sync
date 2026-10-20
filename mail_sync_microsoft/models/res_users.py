@@ -11,7 +11,7 @@ class ResUsers(models.Model):
         """Delegated mode: create (if needed) and connect the personal mailbox of the current user."""
         self.ensure_one()
         account = self.env["mail.sync.account"].search(
-            [("auth_mode", "=", "delegated"), ("active", "=", True)], limit=1
+            [("auth_mode", "in", ("delegated", "hybrid")), ("active", "=", True)], limit=1
         )
         if not account:
             raise UserError(self.env._("Es ist keine delegierte Microsoft-365-Verbindung eingerichtet."))
@@ -21,6 +21,12 @@ class ResUsers(models.Model):
         mailbox = Mailbox.search([("account_id", "=", account.id), ("upn", "=ilike", self.email)], limit=1)
         if not mailbox:
             mailbox = Mailbox.create(
-                {"account_id": account.id, "upn": self.email.lower(), "owner_user_id": self.id, "kind": "personal"}
+                {
+                    "account_id": account.id,
+                    "upn": self.email.lower(),
+                    "owner_user_id": self.id,
+                    "kind": "personal",
+                    "auth_mode": "delegated",
+                }
             )
         return mailbox.action_connect()

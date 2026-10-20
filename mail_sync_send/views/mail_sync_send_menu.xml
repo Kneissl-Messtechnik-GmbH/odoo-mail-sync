@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <menuitem id="mail_sync_signature_menu" name="Signaturen" parent="mail_sync_microsoft.menu_mail_sync_root" action="mail_sync_signature_action" sequence="25"/>
+</odoo>

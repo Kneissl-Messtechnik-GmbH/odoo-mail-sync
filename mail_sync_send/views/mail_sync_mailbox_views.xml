@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_sync_mailbox_view_form_send" model="ir.ui.view">
+        <field name="name">mail.sync.mailbox.form.send</field>
+        <field name="model">mail.sync.mailbox</field>
+        <field name="inherit_id" ref="mail_sync_microsoft.mail_sync_mailbox_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='action_sync_now']" position="after">
+                <button name="action_send_test_mail" string="Testmail senden" type="object" invisible="not send_enabled"/>
+            </xpath>
+            <xpath expr="//notebook/page[@name='folders']" position="before">
+                <page string="Versand &amp; Signatur" name="sending">
+                    <group>
+                        <group string="Versand">
+                            <field name="send_enabled"/>
+                            <field name="mail_server_id" invisible="not send_enabled"/>
+                            <field name="sender_name" invisible="not send_enabled or kind != 'shared'" placeholder="z. B. Kneissl Kundenservice"/>
+                            <field name="sender_name_mode" invisible="not send_enabled or kind != 'shared'" widget="radio"/>
+                        </group>
+                        <group string="Wer und wofür" invisible="not send_enabled or kind != 'shared'">
+                            <field name="send_user_ids" widget="many2many_tags" placeholder="Alle internen Benutzer"/>
+                            <field name="send_default_model_ids" widget="many2many_tags" placeholder="z. B. Lead/Verkaufschance, Ticket"/>
+                            <field name="signature_id" context="{'default_usage': 'shared'}"/>
+                        </group>
+                    </group>
+                    <div invisible="not send_enabled or kind != 'shared'">
+                        <separator string="Vorschau der Signatur (gesendet von Ihnen)"/>
+                        <field name="signature_preview" readonly="1" nolabel="1"/>
+                    </div>
+                    <div class="alert alert-info" role="status" invisible="not send_enabled">
+                        Microsoft 365 muss das Senden erlauben: zentral über die Exchange-Rolle
+                        <b>Application Mail.Send</b> für die Gruppe der freigegebenen Postfächer,
+                        bei persönlich verbundenen Postfächern über die delegierte Berechtigung <b>Mail.Send</b>.
+                    </div>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="mail_sync_mailbox_view_list_send" model="ir.ui.view">
+        <field name="name">mail.sync.mailbox.list.send</field>
+        <field name="model">mail.sync.mailbox</field>
+        <field name="inherit_id" ref="mail_sync_microsoft.mail_sync_mailbox_view_list"/>
+        <field name="arch" type="xml">
+            <field name="visibility_default" position="after">
+                <field name="send_enabled" optional="show" string="Versand"/>
+            </field>
+        </field>
+    </record>
+</odoo>

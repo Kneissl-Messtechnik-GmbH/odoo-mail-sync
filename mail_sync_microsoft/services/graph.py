@@ -6,6 +6,7 @@ The client knows nothing about Odoo. Errors are mapped to a small exception fami
 callers can decide between retry (throttled), full resync (gone) and re-authentication.
 """
 
+import base64
 import logging
 import time
 
@@ -16,7 +17,9 @@ _logger = logging.getLogger(__name__)
 GRAPH_BASE = "https://graph.microsoft.com/v1.0"
 LOGIN_BASE = "https://login.microsoftonline.com"
 APP_SCOPES = ["https://graph.microsoft.com/.default"]
-DELEGATED_SCOPES = ["https://graph.microsoft.com/Mail.Read"]
+DELEGATED_SCOPES = ["https://graph.microsoft.com/Mail.Read", "https://graph.microsoft.com/Mail.Send"]
+# Graph rejects request bodies above 4 MB; sendMail with MIME content is base64 encoded (+33 %).
+SEND_MIME_MAX_BYTES = 3 * 1024 * 1024
 
 # Fields fetched from delta / list calls. Headers and body come with the MIME download.
 MESSAGE_SELECT = ",".join(
@@ -194,12 +197,18 @@ class GraphClient:
             headers.update(extra)
         return headers
 
-    def _request(self, method, url, params=None, extra_headers=None, stream=False, retried_auth=False):
+    def _request(self, method, url, params=None, extra_headers=None, stream=False, retried_auth=False, data=None):
         if not url.startswith("http"):
             url = f"{self.base_url}/{url.lstrip('/')}"
         try:
             response = self.session.request(
-                method, url, params=params, headers=self._headers(extra_headers), timeout=self.timeout, stream=stream
+                method,
+                url,
+                params=params,
+                headers=self._headers(extra_headers),
+                timeout=self.timeout,
+                stream=stream,
+                data=data,
             )
         except requests.RequestException as exc:
             raise GraphThrottled(60, f"network error: {exc}") from exc
@@ -210,7 +219,7 @@ class GraphClient:
             raise GraphThrottled(seconds)
         if status == 401 and not retried_auth:
             self.tokens.invalidate()
-            return self._request(method, url, params, extra_headers, stream, retried_auth=True)
+            return self._request(method, url, params, extra_headers, stream, retried_auth=True, data=data)
         if status in (401, 403):
             raise GraphUnauthorized(_error_message(response), status=status)
         if status == 404:
@@ -338,6 +347,26 @@ class GraphClient:
     def attachments_meta(self, upn, message_id):
         url = f"users/{upn}/messages/{message_id}/attachments"
         return list(self._paged(url, params={"$select": "id,name,contentType,size,isInline"}) or [])
+
+    # --- sending -------------------------------------------------------------
+    def send_mime(self, upn, mime_bytes):
+        """Send a complete RFC 822 message as ``upn`` (POST /users/{upn}/sendMail, MIME variant).
+
+        Recipients come from the To/Cc/Bcc headers; Exchange stores a copy in Sent Items
+        (the mailbox sync later skips it as a duplicate through its Message-Id).
+        """
+        if len(mime_bytes) > SEND_MIME_MAX_BYTES:
+            raise GraphError(
+                f"message is {len(mime_bytes) // 1024} KB, Graph sendMail accepts at most "
+                f"{SEND_MIME_MAX_BYTES // 1024} KB including attachments"
+            )
+        self._request(
+            "POST",
+            f"users/{upn}/sendMail",
+            extra_headers={"Content-Type": "text/plain"},
+            data=base64.b64encode(mime_bytes),
+        )
+        return True
 
 
 def _error_message(response):

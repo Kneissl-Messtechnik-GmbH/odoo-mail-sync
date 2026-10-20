@@ -1,5 +1,7 @@
 # Copyright 2026 Kneissl Messtechnik GmbH
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
+from datetime import UTC, datetime, timedelta
+
 from odoo.addons.mail_sync_microsoft.tests.common import INFO, MailSyncCase
 
 
@@ -139,7 +141,11 @@ class TestLeadRules(MailSyncCase):
         self.assertEqual(row2.lead_id.partner_id.email, "stranger@firma-neu.de")
 
     def test_d6_retro_suggestion_on_new_lead(self):
-        self.sync_inbox((("m1", "Erste Frage", "max@musterwerk.de", [INFO]), {"conversation_id": "conv-R"}))
+        # inside the 30-day retro window relative to today (a fixed date turned this test red after 30 days)
+        received = (datetime.now(UTC) - timedelta(days=2)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        self.sync_inbox(
+            (("m1", "Erste Frage", "max@musterwerk.de", [INFO]), {"conversation_id": "conv-R", "received": received})
+        )
         row = self.row("m1")
         self.assertFalse(row.lead_id)
         lead = self.env["crm.lead"].create(

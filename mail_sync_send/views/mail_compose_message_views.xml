@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <record id="mail_compose_message_view_form_mail_sync_send" model="ir.ui.view">
+        <field name="name">mail.compose.message.form.mail.sync.send</field>
+        <field name="model">mail.compose.message</field>
+        <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='email_from']" position="after">
+                <field name="mail_sync_allowed_mailbox_ids" invisible="1"/>
+                <field name="mail_sync_send_mailbox_id"
+                       domain="[('id', 'in', mail_sync_allowed_mailbox_ids)]"
+                       invisible="subtype_is_log or not mail_sync_allowed_mailbox_ids"
+                       options="{'no_create': True, 'no_open': True}"
+                       placeholder="Standard"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
