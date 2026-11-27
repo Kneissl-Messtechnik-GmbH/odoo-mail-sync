@@ -5,7 +5,7 @@ synchronisierter Konversationen zu Verkaufschancen (`crm.lead`, `type = opportun
 Das Modul hängt sich als `LeadRouter` in den Router des Kernmoduls (`_extra_target`) und wird
 automatisch installiert, sobald `mail_sync_microsoft` und `crm` installiert sind.
 
-* Odoo 18.0 Community, Lizenz LGPL-3
+* Odoo 19.0 Community, Lizenz LGPL-3
 * Abhängigkeiten: `mail_sync_microsoft`, `crm`
 
 ## 1. Regeln D1–D7 (wie in `services/lead_rules.py` implementiert)

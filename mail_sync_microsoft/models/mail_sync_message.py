@@ -57,7 +57,10 @@ class MailSyncMessage(models.Model):
     shared_at = fields.Datetime(readonly=True)
     error = fields.Text()
 
-    _sql_constraints = [("graph_id_unique", "unique(mailbox_id, graph_id)", "Nachricht bereits registriert.")]
+    _graph_id_unique = models.Constraint(
+        "unique(mailbox_id, graph_id)",
+        "Nachricht bereits registriert.",
+    )
 
     @api.depends("model", "res_id")
     def _compute_record_display(self):

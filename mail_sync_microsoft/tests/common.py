@@ -74,7 +74,7 @@ class MailSyncCase(TransactionCase):
     # helpers
     def discover(self):
         self.mailbox.job_discover_folders()
-        return {f.well_known_name or f.display_name: f for f in self.mailbox.folder_ids}
+        return {f.well_known_name or f.name: f for f in self.mailbox.folder_ids}
 
     def sync_folder(self, well_known="inbox"):
         folder = self.mailbox.folder_ids.filtered(lambda f: f.well_known_name == well_known)

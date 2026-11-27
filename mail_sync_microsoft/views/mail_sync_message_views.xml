@@ -80,7 +80,7 @@
                 <filter name="unmatched" string="Kein Kontakt" domain="[('state', '=', 'unmatched')]"/>
                 <filter name="private" string="Privat" domain="[('visibility', '=', 'private')]"/>
                 <filter name="mine" string="Meine Postfächer" domain="[('owner_user_id', '=', uid)]"/>
-                <group expand="0" string="Gruppieren">
+                <group>
                     <filter name="group_state" string="Zustand" context="{'group_by': 'state'}"/>
                     <filter name="group_mailbox" string="Postfach" context="{'group_by': 'mailbox_id'}"/>
                 </group>

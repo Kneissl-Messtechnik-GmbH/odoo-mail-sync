@@ -189,7 +189,7 @@ class MailSyncSignature(models.Model):
             "photo_url": user._mail_sync_photo_url(),
             # field is sanitised on write (_sanitize_user_html)
             "extra": Markup(user.mail_sync_signature_extra or ""),  # noqa: S704
-            "mailbox_name": (mailbox.sender_name or mailbox.display_name or "") if mailbox else "",
+            "mailbox_name": (mailbox.sender_name or mailbox.graph_display_name or "") if mailbox else "",
             "mailbox_email": mailbox.upn if mailbox else "",
             "company_name": company.name or "",
             "company_street": company.street or "",

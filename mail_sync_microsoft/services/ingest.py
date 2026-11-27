@@ -107,5 +107,4 @@ def post(env, target, parsed, max_attachment_bytes, web_link=None):
         message_id=parsed.get("message_id"),
         partner_ids=[],
         attachments=attachments,
-        record_name=target.display_name,
     )

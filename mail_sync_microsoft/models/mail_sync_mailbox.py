@@ -39,7 +39,8 @@ class MailSyncMailbox(models.Model):
     )
     account_auth_mode = fields.Selection(related="account_id.auth_mode", string="Modus der Verbindung")
     upn = fields.Char(string="Postfach (UPN / E-Mail)", required=True, tracking=True)
-    display_name = fields.Char(string="Anzeigename")
+    # Odoo 19 ignores a stored field called display_name; renamed in migrations/19.0.1.1.0
+    graph_display_name = fields.Char(string="Anzeigename")
     kind = fields.Selection(
         [("personal", "Persönliches Postfach"), ("shared", "Funktionspostfach")], required=True, default="personal"
     )
@@ -90,12 +91,15 @@ class MailSyncMailbox(models.Model):
     linked_count = fields.Integer(compute="_compute_counts")
     unmatched_count = fields.Integer(compute="_compute_counts")
 
-    _sql_constraints = [("upn_account_unique", "unique(account_id, upn)", "Dieses Postfach ist bereits angelegt.")]
+    _upn_account_unique = models.Constraint(
+        "unique(account_id, upn)",
+        "Dieses Postfach ist bereits angelegt.",
+    )
 
-    @api.depends("upn", "display_name")
+    @api.depends("upn", "graph_display_name")
     def _compute_name(self):
         for mailbox in self:
-            mailbox.name = mailbox.display_name or mailbox.upn or ""
+            mailbox.name = mailbox.graph_display_name or mailbox.upn or ""
 
     @api.depends("account_id.auth_mode", "kind")
     def _compute_auth_mode(self):
@@ -203,7 +207,7 @@ class MailSyncMailbox(models.Model):
             for folder in mailbox.folder_ids.filtered("include"):
                 mailbox.with_delay(
                     channel=CHANNEL,
-                    description=f"Mail Sync: Backfill {mailbox.upn}/{folder.display_name}",
+                    description=f"Mail Sync: Backfill {mailbox.upn}/{folder.name}",
                     identity_key=f"mail_sync_backfill_{folder.id}",
                     max_retries=50,
                 ).job_backfill(folder.id)
@@ -232,14 +236,14 @@ class MailSyncMailbox(models.Model):
                     # initial load still pending: (re)queue the backfill once instead of a delta
                     mailbox.with_delay(
                         channel=CHANNEL,
-                        description=f"Mail Sync: Backfill {mailbox.upn}/{folder.display_name}",
+                        description=f"Mail Sync: Backfill {mailbox.upn}/{folder.name}",
                         identity_key=f"mail_sync_backfill_{folder.id}",
                         max_retries=50,
                     ).job_backfill(folder.id)
                     continue
                 mailbox.with_delay(
                     channel=CHANNEL,
-                    description=f"Mail Sync: Delta {mailbox.upn}/{folder.display_name}",
+                    description=f"Mail Sync: Delta {mailbox.upn}/{folder.name}",
                     identity_key=None if force else f"mail_sync_delta_{folder.id}",
                     max_retries=50,
                 ).job_delta(folder.id)
@@ -275,7 +279,7 @@ class MailSyncMailbox(models.Model):
             _logger.info(
                 "Mail Sync: Delta-Status für %s/%s ungültig, Neusynchronisation",
                 self.upn,
-                folder and folder.display_name,
+                folder and folder.name,
             )
             if folder:
                 folder.write({"needs_full_resync": True, "delta_link": False})
@@ -322,7 +326,7 @@ class MailSyncMailbox(models.Model):
         """
         from odoo.addons.queue_job.exception import RetryableJobError  # noqa: PLC0415
 
-        message = f"Ordner {folder.display_name} wird gerade synchronisiert"
+        message = f"Ordner {folder.name} wird gerade synchronisiert"
         try:
             # savepoint: a failed NOWAIT would otherwise abort the whole job transaction and
             # queue_job could not even postpone the job; the lock outlives the released savepoint
@@ -344,12 +348,12 @@ class MailSyncMailbox(models.Model):
         if result.get("more"):
             self.with_delay(
                 channel=CHANNEL,
-                description=f"Mail Sync: {kind} {self.upn}/{folder.display_name} (Fortsetzung)",
+                description=f"Mail Sync: {kind} {self.upn}/{folder.name} (Fortsetzung)",
                 identity_key=f"mail_sync_{kind}_{folder.id}",
                 max_retries=50,
             ).job_backfill(folder.id) if kind == "backfill" else self.with_delay(
                 channel=CHANNEL,
-                description=f"Mail Sync: {kind} {self.upn}/{folder.display_name} (Fortsetzung)",
+                description=f"Mail Sync: {kind} {self.upn}/{folder.name} (Fortsetzung)",
                 identity_key=f"mail_sync_{kind}_{folder.id}",
                 max_retries=50,
             ).job_delta(folder.id)

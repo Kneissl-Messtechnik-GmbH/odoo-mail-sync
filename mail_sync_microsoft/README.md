@@ -4,7 +4,7 @@ Spiegelt ausgewählte Microsoft-365-Postfächer über Microsoft Graph nach Odoo 
 hängt jede geschäftliche Konversation an den passenden Kontakt bzw. dessen Firma. Odoo liest
 nur; es schreibt nie in das Postfach zurück.
 
-* Odoo 18.0 Community, Lizenz LGPL-3
+* Odoo 19.0 Community, Lizenz LGPL-3
 * Abhängigkeiten: `mail`, `contacts`, OCA `queue_job`; Python `msal`, `requests`
 * Erweiterung für Verkaufschancen: [`crm_mail_sync`](../crm_mail_sync/README.md)
 * Einrichtung in Microsoft Entra und Exchange: [docs/konfiguration-microsoft.md](../docs/konfiguration-microsoft.md)

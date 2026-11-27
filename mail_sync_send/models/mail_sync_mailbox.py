@@ -78,7 +78,7 @@ class MailSyncMailbox(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
-        if {"send_enabled", "upn", "active", "display_name", "sender_name"} & set(vals):
+        if {"send_enabled", "upn", "active", "graph_display_name", "sender_name"} & set(vals):
             self._mail_sync_sync_mail_server()
         return res
 
@@ -161,7 +161,7 @@ class MailSyncMailbox(models.Model):
         user = user or self.env.user
         if self.kind == "personal":
             return formataddr((user.name or "", self.upn))
-        name = self.sender_name or self.display_name or self.upn
+        name = self.sender_name or self.graph_display_name or self.upn
         if self.sender_name_mode == "user_via":
             name = f"{user.name} | {name}"
         return formataddr((name, self.upn))

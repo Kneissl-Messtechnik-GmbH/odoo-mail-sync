@@ -2,7 +2,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 {
     "name": "Mail Sync: Send via Microsoft 365 and Signature Manager",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Discuss",
     "summary": "Send Odoo mails through shared or personal Microsoft 365 mailboxes, with central signatures",
     "author": "Kneissl Messtechnik GmbH",

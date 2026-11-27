@@ -1,7 +1,22 @@
 # Changelog
 
 Alle nennenswerten Änderungen an den Modulen dieses Repositories. Versionen folgen dem
-Odoo-Schema `18.0.X.Y.Z`; jedes Modul wird getrennt geführt.
+Odoo-Schema `18.0.X.Y.Z` bzw. `19.0.X.Y.Z`; jedes Modul wird getrennt geführt.
+
+## Odoo 19.0 (alle Module) – 2026-11-27
+
+Portierung auf Odoo 19.0 (Branch `19.0`), Versionen `19.0.X.Y.Z` mit unveränderter Modulversion.
+
+* Gruppen hängen an `res.groups.privilege` statt an der Kategorie; `user_ids` statt `users`.
+* `_sql_constraints` als `models.Constraint`; Suchansichten ohne `expand`/`string` an `<group>`.
+* queue_job 19.0 kennt keine Kanalkapazität am Datensatz: Kapazität von `mail_sync` (4) steht in der
+  `odoo.conf` (`[queue_job] channels`).
+* Odoo 19 erlaubt kein gespeichertes Feld `display_name` mehr: Ordnername heißt `name`, der
+  Anzeigename des Postfachs `graph_display_name`. `mail_sync_microsoft` benennt die Spalten in
+  `migrations/19.0.1.1.0/pre-migrate.py` um, die Daten bleiben.
+* `message_post` nimmt kein `record_name` mehr an.
+* Signatur: Odoo 19 hat kein `res.partner.mobile`; `{{mobile}}` bleibt leer, außer ein Modul
+  (z. B. `odoo_call`) bringt das Feld mit.
 
 ## mail_sync_send
 

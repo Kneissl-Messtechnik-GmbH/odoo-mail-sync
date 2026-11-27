@@ -24,7 +24,7 @@ class TestSignature(TransactionCase):
             {
                 "name": "Personal",
                 "usage": "personal",
-                "body_html": '<p>{{name}}</p><p>Mobil: {{mobile}}</p><img src="{{photo_url}}"/><div>{{extra}}</div>',
+                "body_html": '<p>{{name}}</p><p>Tel: {{phone}}</p><p>Mobil: {{mobile}}</p><img src="{{photo_url}}"/><div>{{extra}}</div>',
             }
         )
         cls.user = new_test_user(cls.env, login="sig_user", name="Paula Person", groups="base.group_user")
@@ -33,11 +33,13 @@ class TestSignature(TransactionCase):
         self.user.mail_sync_signature_id = self.template
         self.assertIn("Paula Person", self.user.signature)
         self.assertNotIn("Mobil", self.user.signature)
+        self.assertNotIn("Tel", self.user.signature)
 
     def test_partner_change_refreshes_signature(self):
         self.user.mail_sync_signature_id = self.template
-        self.user.partner_id.mobile = "+49 170 1"
-        self.assertIn("Mobil: +49 170 1", self.user.signature)
+        # Odoo 19 has no res.partner.mobile (a module like odoo_call may add it), so the phone field is used here
+        self.user.partner_id.phone = "+49 170 1"
+        self.assertIn("Tel: +49 170 1", self.user.signature)
 
     def test_photo_is_public_absolute(self):
         self.user.image_1920 = PNG
