@@ -60,7 +60,7 @@ jobs:
       - name: Clone OCA/queue (queue_job dependency)
         run: git clone https://github.com/OCA/queue.git -b 19.0 --depth 1 /tmp/oca-queue
       - name: Install Python dependencies
-        run: pip install --break-system-packages msal
+        run: pip install --break-system-packages msal openupgradelib  # openupgradelib: needed by queue_job 19.0
       - name: Run module tests
         shell: bash
         run: |

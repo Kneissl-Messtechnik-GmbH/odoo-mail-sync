@@ -54,7 +54,7 @@ test: oca-queue ## Run module tests in the odoo image against a local Postgres (
 		-v "$(CURDIR):/mnt/extra-addons:ro" \
 		-v "$(OCA_QUEUE):/mnt/oca-queue:ro" \
 		--entrypoint bash $(ODOO_IMAGE) -c '\
-			pip install --break-system-packages -q msal && \
+			pip install --break-system-packages -q msal openupgradelib && \
 			odoo --db_host=$(PGHOST) --db_port=$(PGPORT) --db_user=$(PGUSER) --db_password=$(PGPASSWORD) \
 				-d $(TEST_DB) \
 				--addons-path=$(ODOO_ADDONS_PATH) \
