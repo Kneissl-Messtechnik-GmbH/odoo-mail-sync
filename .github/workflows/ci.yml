@@ -24,7 +24,7 @@ jobs:
         run: pre-commit run --all-files --show-diff-on-failure
 
   test:
-    name: Odoo 18 tests
+    name: Odoo 19 tests
     runs-on: ubuntu-latest
     # The job runs inside the official Odoo image; steps are executed with the
     # runner's `tail -f /dev/null` entrypoint, so we call `odoo` directly and
@@ -32,7 +32,7 @@ jobs:
     # `odoo` (uid 100), which cannot write the mounted workspace or install
     # packages, hence `--user root`.
     container:
-      image: odoo:18.0
+      image: odoo:19.0
       options: --user root
     services:
       postgres:
@@ -58,9 +58,9 @@ jobs:
           apt-get install -y -qq --no-install-recommends git
       - uses: actions/checkout@v4
       - name: Clone OCA/queue (queue_job dependency)
-        run: git clone https://github.com/OCA/queue.git -b 18.0 --depth 1 /tmp/oca-queue
+        run: git clone https://github.com/OCA/queue.git -b 19.0 --depth 1 /tmp/oca-queue
       - name: Install Python dependencies
-        run: pip install --break-system-packages msal
+        run: pip install --break-system-packages msal openupgradelib  # openupgradelib: needed by queue_job 19.0
       - name: Run module tests
         shell: bash
         run: |

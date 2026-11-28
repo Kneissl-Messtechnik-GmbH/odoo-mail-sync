@@ -54,7 +54,7 @@ def normalize_row(row, folder=None, internal_domains=()):
         "body_preview": (row.get("bodyPreview") or "")[:255],
         "web_link": row.get("webLink") or False,
         "is_draft": bool(row.get("isDraft")),
-        "folder_name": folder.display_name if folder is not None else "",
+        "folder_name": folder.name if folder is not None else "",
     }
 
 
@@ -73,7 +73,7 @@ def discover_folders(mailbox, run):
     for row in graph.list_folders(mailbox.upn):
         seen.add(row["id"])
         vals = {
-            "display_name": row.get("displayName") or "?",
+            "name": row.get("displayName") or "?",
             "path": row.get("path") or row.get("displayName"),
             "well_known_name": (row.get("wellKnownName") or "").lower(),
         }
@@ -87,7 +87,7 @@ def discover_folders(mailbox, run):
                 mailbox_id=mailbox.id,
                 graph_id=row["id"],
                 include=Folder._default_include(
-                    vals["well_known_name"], vals["display_name"], mailbox, path=vals["path"], parent_included=parent_ok
+                    vals["well_known_name"], vals["name"], mailbox, path=vals["path"], parent_included=parent_ok
                 ),
             )
             folder = Folder.create(vals)

@@ -2,7 +2,7 @@
 # License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 {
     "name": "CRM Mail Sync",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "category": "Sales/CRM",
     "summary": "Link synchronised Microsoft 365 conversations to CRM opportunities (Pipedrive-style rules, smarter)",
     "author": "Kneissl Messtechnik GmbH",

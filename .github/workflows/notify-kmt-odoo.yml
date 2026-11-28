@@ -1,10 +1,10 @@
-# Asks KMT-Odoo to pull this version after every push to 18.0 (update PR, auto-merge, staging deploy).
+# Asks KMT-Odoo to pull this version after every push to 19.0 (update PR, auto-merge, staging deploy).
 # Template and docs: KMT-Odoo ci/templates/notify-kmt-odoo.yml, docs/external-apps.md
 name: Notify KMT-Odoo
 
 on:
   push:
-    branches: ["18.0"]
+    branches: ["19.0"]
   workflow_dispatch:
 
 jobs:

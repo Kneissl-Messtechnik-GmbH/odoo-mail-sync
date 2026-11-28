@@ -33,7 +33,7 @@ repos:
 
   # --- Python: Pylint-Odoo (Odoo-specific checks) ---
   - repo: https://github.com/OCA/pylint-odoo
-    rev: v9.1.3
+    rev: v9.3.24
     hooks:
       - id: pylint_odoo
         args:

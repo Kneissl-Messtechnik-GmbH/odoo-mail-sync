@@ -27,12 +27,12 @@ make install-hooks   # pip install -r requirements-dev.txt + pre-commit install
 make lint            # ruff check + ruff format --check
 make format          # auto-fix lint findings and formatting
 make pre-commit      # all hooks (ruff, ruff-format, pylint-odoo mandatory rules, file checks)
-make test            # Odoo 18 tests of both modules in the odoo:18.0 image
+make test            # Odoo 19 tests of all modules in the odoo:19.0 image
 ```
 
 `make test` runs the same command as CI (`.github/workflows/ci.yml`): it clones
-[OCA/queue](https://github.com/OCA/queue) 18.0 into `.oca/queue` on first use, starts the
-`odoo:18.0` image with `--network host`, installs `msal`, installs both modules into a fresh
+[OCA/queue](https://github.com/OCA/queue) 19.0 into `.oca/queue` on first use, starts the
+`odoo:19.0` image with `--network host`, installs `msal`, installs both modules into a fresh
 database and runs their tests. Connection settings are variables with these defaults:
 
 | Variable | Default | Purpose |
@@ -40,7 +40,7 @@ database and runs their tests. Connection settings are variables with these defa
 | `PGHOST` / `PGPORT` | `127.0.0.1` / `5432` | PostgreSQL reachable from the host network |
 | `PGUSER` / `PGPASSWORD` | `odoo` / `odoo` | role that may create the test database |
 | `TEST_DB` | `mail_sync_test` | database created (must not exist yet) |
-| `ODOO_IMAGE` | `odoo:18.0` | image to run; use `odoo:19.0` on the 19.0 branch |
+| `ODOO_IMAGE` | `odoo:19.0` | image to run; use `odoo:18.0` on the 18.0 branch |
 | `OCA_QUEUE` | `.oca/queue` | local checkout of OCA/queue (`queue_job`) |
 
 Example against a Postgres on another port: `make test PGPORT=5433 PGPASSWORD=secret`.

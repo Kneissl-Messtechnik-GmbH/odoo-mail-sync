@@ -1,7 +1,7 @@
 # Odoo Mail Sync for Microsoft 365 – developer tasks
 #
 # Tests run the same command as CI (.github/workflows/ci.yml) inside the official
-# odoo:18.0 image, using --network host against a Postgres reachable from the host.
+# odoo:19.0 image, using --network host against a Postgres reachable from the host.
 # Override any of the variables below on the command line or via the environment,
 # e.g.  make test PGHOST=127.0.0.1 PGPORT=5433 PGPASSWORD=secret
 
@@ -10,14 +10,14 @@ SHELL := /bin/bash
 
 MODULES     ?= mail_sync_microsoft,crm_mail_sync,mail_sync_send
 TEST_TAGS   ?= /mail_sync_microsoft,/crm_mail_sync,/mail_sync_send
-ODOO_IMAGE  ?= odoo:18.0
+ODOO_IMAGE  ?= odoo:19.0
 PGHOST      ?= 127.0.0.1
 PGPORT      ?= 5432
 PGUSER      ?= odoo
 PGPASSWORD  ?= odoo
 TEST_DB     ?= mail_sync_test
 OCA_QUEUE   ?= $(CURDIR)/.oca/queue
-OCA_BRANCH  ?= 18.0
+OCA_BRANCH  ?= 19.0
 
 ODOO_ADDONS_PATH := /usr/lib/python3/dist-packages/odoo/addons,/mnt/extra-addons,/mnt/oca-queue
 
@@ -54,7 +54,7 @@ test: oca-queue ## Run module tests in the odoo image against a local Postgres (
 		-v "$(CURDIR):/mnt/extra-addons:ro" \
 		-v "$(OCA_QUEUE):/mnt/oca-queue:ro" \
 		--entrypoint bash $(ODOO_IMAGE) -c '\
-			pip install --break-system-packages -q msal && \
+			pip install --break-system-packages -q msal openupgradelib && \
 			odoo --db_host=$(PGHOST) --db_port=$(PGPORT) --db_user=$(PGUSER) --db_password=$(PGPASSWORD) \
 				-d $(TEST_DB) \
 				--addons-path=$(ODOO_ADDONS_PATH) \

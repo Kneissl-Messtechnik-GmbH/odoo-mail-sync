@@ -6,7 +6,7 @@ load-plugins = pylint_odoo
 score = no
 
 [ODOOLINT]
-valid_odoo_versions = 18.0
+valid_odoo_versions = 19.0
 
 [MESSAGES CONTROL]
 # Only enable security-critical and mandatory checks

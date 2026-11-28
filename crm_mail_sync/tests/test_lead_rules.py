@@ -14,7 +14,7 @@ class TestLeadRules(MailSyncCase):
                 "name": "Vertrieb",
                 "login": "vertrieb@test",
                 "email": "vertrieb@test",
-                "groups_id": [(6, 0, [cls.env.ref("sales_team.group_sale_salesman").id])],
+                "group_ids": [(6, 0, [cls.env.ref("sales_team.group_sale_salesman").id])],
             }
         )
         cls.other = cls.env["res.users"].create(
@@ -22,7 +22,7 @@ class TestLeadRules(MailSyncCase):
                 "name": "Kollege",
                 "login": "kollege@test",
                 "email": "kollege@test",
-                "groups_id": [(6, 0, [cls.env.ref("sales_team.group_sale_salesman").id])],
+                "group_ids": [(6, 0, [cls.env.ref("sales_team.group_sale_salesman").id])],
             }
         )
         cls.mailbox.write({"owner_user_id": cls.owner.id})

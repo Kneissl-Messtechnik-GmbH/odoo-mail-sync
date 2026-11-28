@@ -12,7 +12,8 @@ class MailSyncFolder(models.Model):
 
     mailbox_id = fields.Many2one("mail.sync.mailbox", required=True, ondelete="cascade", index=True)
     graph_id = fields.Char(required=True, index=True)
-    display_name = fields.Char(required=True)
+    # Odoo 19 ignores a stored field called display_name; renamed in migrations/19.0.1.1.0
+    name = fields.Char(required=True)
     path = fields.Char()
     well_known_name = fields.Char(index=True)
     include = fields.Boolean(string="Synchronisieren", default=True)
@@ -22,7 +23,10 @@ class MailSyncFolder(models.Model):
     last_sync = fields.Datetime(readonly=True)
     message_count = fields.Integer(compute="_compute_message_count")
 
-    _sql_constraints = [("graph_id_unique", "unique(mailbox_id, graph_id)", "Ordner bereits vorhanden.")]
+    _graph_id_unique = models.Constraint(
+        "unique(mailbox_id, graph_id)",
+        "Ordner bereits vorhanden.",
+    )
 
     def _compute_message_count(self):
         counts = dict(
@@ -32,11 +36,11 @@ class MailSyncFolder(models.Model):
             folder.message_count = counts.get(folder, 0)
 
     @api.model
-    def _default_include(self, well_known_name, display_name, mailbox, path=None, parent_included=True):
+    def _default_include(self, well_known_name, name, mailbox, path=None, parent_included=True):
         well_known = (well_known_name or "").lower()
         if not parent_included or well_known in EXCLUDED_WELL_KNOWN:
             return False
         if well_known == "sentitems" and not mailbox.sync_sent:
             return False
-        haystack = (path or display_name or "").strip().lower()
+        haystack = (path or name or "").strip().lower()
         return not any(pattern in haystack for pattern in mailbox.account_id._excluded_folder_patterns())

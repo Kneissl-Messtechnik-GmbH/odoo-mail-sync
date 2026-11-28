@@ -239,7 +239,7 @@ class TestSync(MailSyncCase):
         real_execute = self.env.cr.execute
 
         def locked(query, *args, **kwargs):
-            if "FOR UPDATE NOWAIT" in query:
+            if "FOR UPDATE NOWAIT" in str(query):  # Odoo 19 passes SQL objects, not only strings
                 try:  # like a real lock failure, this leaves the transaction aborted
                     real_execute("SELECT 1/0")
                 except psycopg2.Error:

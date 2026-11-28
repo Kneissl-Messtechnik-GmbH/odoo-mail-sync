@@ -11,10 +11,10 @@ class TestVisibility(MailSyncCase):
         super().setUpClass()
         group_user = cls.env.ref("mail_sync_microsoft.group_mail_sync_user")
         cls.owner = cls.env["res.users"].create(
-            {"name": "Owner", "login": "owner@test", "email": "owner@test", "groups_id": [(6, 0, [group_user.id])]}
+            {"name": "Owner", "login": "owner@test", "email": "owner@test", "group_ids": [(6, 0, [group_user.id])]}
         )
         cls.other = cls.env["res.users"].create(
-            {"name": "Other", "login": "other@test", "email": "other@test", "groups_id": [(6, 0, [group_user.id])]}
+            {"name": "Other", "login": "other@test", "email": "other@test", "group_ids": [(6, 0, [group_user.id])]}
         )
         cls.mailbox.write({"owner_user_id": cls.owner.id, "visibility_default": "private"})
 
